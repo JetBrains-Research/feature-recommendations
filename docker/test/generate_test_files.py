@@ -75,6 +75,11 @@ class ReadEvents:
                 
                 group_id = event_data[5]
                 event_id = event_data[10]
+                if group_id == 'actions' and event_id == "action.invoked":
+                   # print(event_id)
+                    event_info = json.loads(event_data[11])
+                    #print(event_info)
+                    event_id += "." + event_info["action_id"]
                 timestamp = int(event_data[3])
                 device_id = event_data[7]
                 
