@@ -1,88 +1,99 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[49]:
-
-
 from tqdm import tqdm
-
-
-# In[50]:
-
-
 import os
 import json
-dir_name = "./test_events"
-label_dir_name = "./test_labels"
-file_names = os.listdir(dir_name)
+import requests
+
+from constants import ACTION_INVOKED_GROUP, Method, METHODS_CNT
+from reader import event_to_tips
 
 
-# In[51]:
+TEST_EVENTS_DIR = "./test_events"
+TEST_LABELS_DIR = "./test_labels"
+FILE_NAMES = os.listdir(TEST_EVENTS_DIR)
 
 
-def read_user_events(file):
+def _read_user_events(file):
     with open("./test_events/" + file, 'r') as fin:
         data = json.load(fin)
         return data
 
 
-# In[54]:
+URL = "http://0.0.0.0:5000/"
 
 
-import requests
-url = "http://0.0.0.0:5000/"
-
-user_to_recommendation = {}
-
-for file_name in tqdm(file_names):
-    #print(file_name[:-4])
-    if not (file_name[-5:] == '.json'):
-        continue
-    json_events = read_user_events(file_name)
-    #print(json_events)
-    r = requests.post(url, json=json_events)
-    #print(r.text)
-    user_to_recommendation[file_name[:-5]] = json.loads(str(r.text))
-    #print(r.text)
+def _is_intersection(list1, list2):
+    return len(set(list1).intersection(list2)) > 0
 
 
-# In[55]:
+def _build_recommendations():
+    user_to_recommendation = {}
+
+    for file_name in tqdm(FILE_NAMES):
+        if not (file_name[-5:] == '.json'):
+            continue
+
+        json_events = _read_user_events(file_name)
+        r = requests.post(URL, json=json_events)
+
+        user_to_recommendation[file_name[:-5]] = json.loads(str(r.text))
+
+    return user_to_recommendation
 
 
-all_recommendations = {}
-true_recommendations = {}
+def _build_done_tips():
+    user_to_done = {}
 
-for file_name in tqdm(file_names):
-    if not (file_name[-5:] == '.json'):
-        continue
-        
-    recommended_event = user_to_recommendation[file_name[:-5]]["showingOrder"][0].split(",")
-    algorithm = user_to_recommendation[file_name[:-5]]["usedAlgorithm"]
-    if algorithm not in all_recommendations.keys():
-        all_recommendations[algorithm] = 1
-        true_recommendations[algorithm] = 0
-    else:
+    for file_name in tqdm(FILE_NAMES):
+        if not (file_name[-5:] == '.json'):
+            continue
+
+        user_to_done[file_name[:-5]] = []
+
+        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
+            event = row[:-1].split(",")
+            if event[0] == ACTION_INVOKED_GROUP:
+                tips = event_to_tips(event)
+                for tip in tips:
+                    user_to_done[file_name[:-5]].append(tip)
+
+    return user_to_done
+
+
+def _evaluate_recommendations(user_to_done, user_to_recommendation):
+    all_recommendations = {}
+    true_recommendations = {}
+
+    for i in range(METHODS_CNT):
+        all_recommendations[Method(i).name] = 0
+        true_recommendations[Method(i).name] = 0
+
+    for file_name in tqdm(FILE_NAMES):
+        device_id = file_name[:-5]
+
+        done_tips = user_to_done[device_id]
+        recommended_tips = user_to_recommendation[device_id]["showingOrder"]
+
+        algorithm = user_to_recommendation[device_id]["usedAlgorithm"]
         all_recommendations[algorithm] += 1
 
-    for row in open(label_dir_name + "/" + file_name[:-5] + ".csv", 'r'):
-        event = row[:-1].split(",")
-        #print(str(event) + " " + str(recommended_event))
-        if event[0] == recommended_event[0] and event[1] == recommended_event[1]:
+        if _is_intersection(done_tips, recommended_tips):
             true_recommendations[algorithm] += 1
-            break
-    
+
+    recommendation_accuracy = {}
+    for device_id in all_recommendations.keys():
+        recommendation_accuracy[device_id] = true_recommendations[device_id] / all_recommendations[device_id]
+
+    return recommendation_accuracy
 
 
-# In[56]:
+def run_test():
+    user_to_recommendation = _build_recommendations()
+    user_to_done = _build_done_tips()
+    recommendation_accuracy = _evaluate_recommendations(user_to_done, user_to_recommendation)
+
+    for i in range(METHODS_CNT):
+        print(f"{Method(i).name}: {recommendation_accuracy[Method(i).name]}")
 
 
-print("TOP: " + str(true_recommendations["TOP"] / all_recommendations["TOP"]))
-print("PROB: " + str(true_recommendations["PROB"] / all_recommendations["PROB"]))
-print("MATRIX: " + str(true_recommendations["MATRIX"] / all_recommendations["MATRIX"]))
-
-
-# In[ ]:
-
-
-
-
+if __name__ == '__main__':
+    run_test()

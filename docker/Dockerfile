@@ -1,8 +1,10 @@
 FROM python:3
 ADD app.py /
-ADD log_sample.csv /
-RUN mkdir -p /test_labels
-RUN mkdir -p /test_events
+ADD recommenders /recommenders
+ADD resources /resources
+ADD reader.py /
+ADD recommender_system.py /
+ADD constants.py /
 RUN pip install numpy
 RUN pip install tqdm
 RUN pip install scipy
