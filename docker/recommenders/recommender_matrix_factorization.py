@@ -81,14 +81,12 @@ class BayesianPersonalizedRanking(Recommender):
         best_index = 0
         indices = self._ids_to_1_0(self.user_to_event_index[0])
         min_distance = cosine(test_device_indices, indices)
-        #print(min_distance)
         for index in self.user_to_event_index.keys():
             indices = self._ids_to_1_0(self.user_to_event_index[index])
             dist = cosine(test_device_indices, indices)
             if dist < min_distance:
                 min_distance = dist
                 best_index = index
-        #print("AAA" + str(min_distance))
         return best_index
 
     def recommend(self, test_device_events, tips):

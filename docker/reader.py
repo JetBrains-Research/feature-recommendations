@@ -3,7 +3,7 @@ from tqdm import tqdm
 import json
 import logging
 
-from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS
+from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS, TIPS_GROUP
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -94,6 +94,11 @@ def _extract_from_csv_row(event_data):
         event_info = json.loads(event_data[11])
         group_id = ACTION_INVOKED_GROUP
         event_id = event_info["action_id"]
+
+    if group_id == "ui.tips" and event_id == "tip.shown":
+        event_info = json.loads(event_data[11])
+        group_id = TIPS_GROUP
+        event_id = event_info["filename"]
 
     timestamp = int(event_data[3])
     device_id = event_data[7]
