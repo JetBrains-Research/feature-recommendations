@@ -8,9 +8,10 @@ FORGET_TIME_DAYS = 10
 class Method(Enum):
     TOP = 0
     PROB = 1
+    MATRIX = 2
 
 
-METHODS_CNT = 2
+METHODS_CNT = 3
 
 PATH = __file__[:-12]
 INPUT_FILE_NAME = PATH + 'resources/' + 'log_sample_with_answers.csv'

@@ -2,7 +2,7 @@ import logging
 from tqdm import tqdm
 import operator
 
-from recommenders.recommender import Recommender
+from recommenders.recommender import Recommender, _is_intersection
 from reader import event_to_tips
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
@@ -44,10 +44,6 @@ class RecommenderTopEvent(Recommender):
         logging.info("RecommenderTopEvent:init: init started.")
         super(RecommenderTopEvent, self).__init__(train_devices, event_types, train_events)
         self.top_events = _get_top_events(self.train_events)
-
-    @staticmethod
-    def _is_intersection(list1, list2):
-        return len(set(list1).intersection(list2)) > 0
     
     def recommend(self, test_device_events, tips):
         logging.info("RecommenderTopEvent:recommend: recommendation started.")
@@ -58,7 +54,7 @@ class RecommenderTopEvent(Recommender):
         for top_event in self.top_events:
             top_event = top_event[0]
             if (top_event not in test_device_events.keys())\
-                    and self._is_intersection(tips, event_to_tips(top_event)) > 0:
+                    and _is_intersection(tips, event_to_tips(top_event)) > 0:
                 for tip in event_to_tips(top_event):
                     tips_to_recommend.append(tip)
         

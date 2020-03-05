@@ -3,6 +3,7 @@ import time
 
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
+from recommenders.recommender_matrix_factorization import BayesianPersonalizedRanking
 import reader
 from constants import Method, METHODS_CNT
 
@@ -10,8 +11,8 @@ logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
 METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
-    Method.PROB: RecommenderTopEventWithProbability
-    #Method.MATRIX: BayesianPersonalizedRanking, fix and then add
+    Method.PROB: RecommenderTopEventWithProbability,
+    Method.MATRIX: BayesianPersonalizedRanking
 }
 logging.info("Train data reading...")
 train_events, events_types, train_device_ids = reader.read_events_from_file()

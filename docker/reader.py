@@ -7,6 +7,7 @@ from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_N
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
+
 def read_request_json(json_data):
     user_events = {}
     tips = []

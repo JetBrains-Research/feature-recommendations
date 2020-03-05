@@ -1,6 +1,6 @@
 import logging
 
-from recommenders.recommender_top_event import RecommenderTopEvent
+from recommenders.recommender_top_event import RecommenderTopEvent, _is_intersection
 from reader import event_to_tips
 import numpy as np
 
@@ -16,7 +16,7 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
             event = top_event[0]
             probability = top_event[1]
             if (event not in test_device_events.keys()) \
-                    and self._is_intersection(tips, event_to_tips(event)) > 0:
+                    and _is_intersection(tips, event_to_tips(event)) > 0:
                 not_done_event_with_prob.append(top_event)
                 all_not_done_top_sum += probability
 
