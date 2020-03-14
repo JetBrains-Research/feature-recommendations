@@ -179,12 +179,12 @@ def _ignore_old_events(events):
 def read_events_from_file():
     events, events_types, train_device_ids = read_events_raw(INPUT_FILE_NAME)
         
-    logging.info(f"{len(train_device_ids)} devices found.")
-    logging.info(f"{len(events_types)} event types found.")
+    logging.info(str(len(train_device_ids)) + " devices found.")
+    logging.info(str(len(events_types)) + " event types found.")
 
     train_events = _ignore_old_events(events)
 
-    logging.info(f"{len(train_events.keys())} train events will be used.")
+    logging.info(str(len(train_events.keys())) + " train events will be used.")
 
     return train_events, events_types, train_device_ids
 

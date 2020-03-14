@@ -21,7 +21,7 @@ logging.info("Train data read.")
 algorithms = {}
 for i in range(METHODS_CNT):
     algorithms[Method(i)] = METHOD_TO_CLASS[Method(i)](train_device_ids, events_types, train_events)
-    logging.info(f"Algorithm {Method(i).name} generated.")
+    logging.info("Algorithm " + str(Method(i).name) + " generated.")
 
 
 def recommend(user_events, tips, method):
@@ -32,8 +32,8 @@ def recommend(user_events, tips, method):
 
     if method in algorithms.keys():
         recommendation = algorithms[method].recommend(user_events, tips)
-        logging.info(f"{method.name} recommender done.")
+        logging.info(str(method.name) + " recommender done.")
 
     end = time.time()
-    logging.info(f"Recommendation process done, TIME: {end - start}")
+    logging.info("Recommendation process done, TIME: " + str(end - start))
     return recommendation

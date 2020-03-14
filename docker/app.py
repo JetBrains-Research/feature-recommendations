@@ -6,18 +6,8 @@ import logging
 
 import os
 
-
-def list_files(startpath):
-    for root, dirs, files in os.walk(startpath):
-        level = root.replace(startpath, '').count(os.sep)
-        indent = ' ' * 4 * (level)
-        print('{}{}/'.format(indent, os.path.basename(root)))
-        subindent = ' ' * 4 * (level + 1)
-        for f in files:
-            print('{}{}'.format(subindent, f))
-
-
 logging.basicConfig(filename="recommendations.log", level=logging.INFO, filemode='w')
+logging.getLogger().addHandler(logging.StreamHandler())
 logging.info("App started.")
 
 import recommender_system
@@ -38,10 +28,10 @@ def do_recommendation():
     
     method_int = bucket % METHODS_CNT
     method = Method(method_int)
-    logging.info(f"Current recommendation algorithm id: {method.name}")
+    logging.info("Current recommendation algorithm id: " + str(method.name))
     
     recommendation = recommender_system.recommend(user_events, tips, method)
-    logging.info(f"Recommendation made: {recommendation}")
+    logging.info("Recommendation made: " + str(recommendation))
 
     data = {"showingOrder": recommendation,
             "usedAlgorithm": method.name}

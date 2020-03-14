@@ -29,8 +29,8 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
 
         not_done_event_with_prob, all_not_done_top_sum = \
             self._get_not_done_events_with_probability(test_device_events, tips)
-        logging.info(f"RecommenderTopEventWithProbability:recommend: not_done_events computed, "
-                     f"{len(not_done_event_with_prob)} found.")
+        logging.info("RecommenderTopEventWithProbability:recommend: not_done_events computed, " +
+                     str(len(not_done_event_with_prob)) + " found.")
 
         if len(not_done_event_with_prob) <= 0:
             return event_to_tips(self.top_events[0][0])
