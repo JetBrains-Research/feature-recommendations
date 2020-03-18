@@ -34,6 +34,12 @@ def recommend(user_events, tips, method):
         recommendation = algorithms[method].recommend(user_events, tips)
         logging.info(str(method.name) + " recommender done.")
 
+    recommendation_set = set(recommendation)
+    if len(recommendation) != len(tips):
+        for tip in tips:
+            if tip not in recommendation_set:
+                recommendation.append(tip)
     end = time.time()
     logging.info("Recommendation process done, TIME: " + str(end - start))
+
     return recommendation
