@@ -1,5 +1,5 @@
 from enum import Enum
-
+import os
 ACTION_INVOKED_GROUP = "actions.action.invoked"
 TIPS_GROUP = "ui.tips.tip.shown"
 FORGET_TIME_DAYS = 10
@@ -13,9 +13,9 @@ class Method(Enum):
 
 METHODS_CNT = 3
 
-PATH = __file__[:-12]
-INPUT_FILE_NAME = PATH + 'resources/' + 'log_sample_with_answers.csv'
-TIP_TO_EVENT_FILE_NAME = PATH + "resources/html_to_action_id.csv"
+PATH = os.path.split(__file__)[0]
+INPUT_FILE_NAME = PATH + '/resources/' + 'log_sample_with_answers.csv'
+TIP_TO_EVENT_FILE_NAME = PATH + "/resources/html_to_action_id.csv"
 
 PREDICTED_TIME_MILLIS = 2 * 60 * 60 * 1000
 TRAIN_TIME_DAYS = 30

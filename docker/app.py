@@ -17,13 +17,17 @@ from constants import Method, METHODS_CNT
 app = Flask(__name__)
 
 
-@app.route('/', methods=['POST'])
+@app.route('/tips/v1', methods=['POST'])
 def do_recommendation():
     content = request.get_json()
-    logging.info(content)
     logging.info("JSON request received. ")
 
-    bucket, user_events, tips = reader.read_request_json(content)
+    try:
+        bucket, user_events, tips = reader.read_request_json(content)
+    except Exception:
+        logging.info(content)
+        return
+
     logging.info("User events and tips read.")
     
     method_int = bucket % METHODS_CNT
@@ -47,4 +51,3 @@ def hello():
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
     logging.info("Recommendation service started.")
-

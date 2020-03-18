@@ -5,11 +5,7 @@ ADD resources/ /resources
 ADD reader.py /
 ADD recommender_system.py /
 ADD constants.py /
-RUN pip install numpy
-RUN pip install tqdm
-RUN pip install scipy
-RUN pip install sklearn
-RUN pip install flask
-RUN pip install implicit
+ADD requirements.txt /
+RUN pip install -r requirements.txt
 ENTRYPOINT [ "python" ]
 CMD [ "/app.py" ]
