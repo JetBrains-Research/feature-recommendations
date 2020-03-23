@@ -25,6 +25,9 @@ for i in range(METHODS_CNT):
 
 algorithms = {}
 
+if not os.path.isdir("./models"):
+    os.mkdir("./models")
+
 if is_trained:
     for i in range(METHODS_CNT):
         with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
