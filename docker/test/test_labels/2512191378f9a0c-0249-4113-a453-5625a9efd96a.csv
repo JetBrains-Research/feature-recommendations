@@ -1,0 +1,6 @@
+ui.dialogs,close
+ui.dialogs,show
+startup,totalDuration
+indexing,stage
+startup,appInit
+indexing,finished

@@ -1,11 +1,13 @@
 import logging
 import time
+import os
+import pickle
 
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_matrix_factorization import BayesianPersonalizedRanking
 import reader
-from constants import Method, METHODS_CNT
+from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -14,14 +16,37 @@ METHOD_TO_CLASS = {
     Method.PROB: RecommenderTopEventWithProbability,
     Method.MATRIX: BayesianPersonalizedRanking
 }
-logging.info("Train data reading...")
-train_events, events_types, train_device_ids = reader.read_events_from_file()
-logging.info("Train data read.")
+
+is_trained = True
+for i in range(METHODS_CNT):
+    if not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
+        is_trained = False
+        break
 
 algorithms = {}
-for i in range(METHODS_CNT):
-    algorithms[Method(i)] = METHOD_TO_CLASS[Method(i)](train_device_ids, events_types, train_events)
-    logging.info("Algorithm " + str(Method(i).name) + " generated.")
+
+if is_trained:
+    for i in range(METHODS_CNT):
+        with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
+            algorithms[Method(i)] = pickle.load(f)
+        logging.info("Algorithm " + str(Method(i).name) + " loaded.")
+
+else:
+    logging.info("Train data reading...")
+    train_events, events_types, train_device_ids = reader.read_events_from_file()
+    logging.info("Train data read.")
+
+    for i in range(METHODS_CNT):
+        if os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
+            with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
+                algorithms[Method(i)] = pickle.load(f)
+                logging.info("Algorithm " + str(Method(i).name) + " loaded.")
+        else:
+            algorithms[Method(i)] = METHOD_TO_CLASS[Method(i)](train_device_ids, events_types, train_events)
+            logging.info("Algorithm " + str(Method(i).name) + " generated.")
+            with open(METHOD_TO_FILE_NAME[Method(i)], 'wb') as f:
+                pickle.dump(algorithms[Method(i)], f)
+                logging.info("Algorithm " + str(Method(i).name) + " saved.")
 
 
 def recommend(user_events, tips, method):

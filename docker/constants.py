@@ -20,3 +20,13 @@ TIP_TO_EVENT_FILE_NAME = PATH + "/resources/html_to_action_id.csv"
 PREDICTED_TIME_MILLIS = 2 * 60 * 60 * 1000
 TRAIN_TIME_DAYS = 30
 TRAIN_TIME_MILLIS = TRAIN_TIME_DAYS * 24 * 60 * 60 * 1000
+
+TOP_MODEL_FILE = PATH + "/models/top.pickle"
+PROB_MODEL_FILE = PATH + "/models/prob.pickle"
+MATRIX_MODEL_FILE = PATH + "/models/matrix.pickle"
+
+METHOD_TO_FILE_NAME = {
+    Method.TOP: TOP_MODEL_FILE,
+    Method.PROB: PROB_MODEL_FILE,
+    Method.MATRIX: MATRIX_MODEL_FILE
+}

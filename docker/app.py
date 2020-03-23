@@ -4,8 +4,6 @@
 from flask import Flask, request
 import logging
 
-import os
-
 logging.basicConfig(filename="recommendations.log", level=logging.INFO, filemode='w')
 logging.getLogger().addHandler(logging.StreamHandler())
 logging.info("App started.")

@@ -4,14 +4,15 @@ import json
 import shutil
 import os
 
-
 import reader
 from constants import INPUT_FILE_NAME, PREDICTED_TIME_MILLIS, TRAIN_TIME_MILLIS
 
 
 def _generate_json(events_types, test_events, test_labels, device_id_to_bucket):
-    shutil.rmtree('./test_events')
-    shutil.rmtree('./test_labels')
+    if os.path.isdir('./test_events'):
+        shutil.rmtree('./test_events')
+    if os.path.isdir('./test_labels'):
+        shutil.rmtree('./test_labels')
     os.mkdir("./test_events")
     os.mkdir("./test_labels")
 

@@ -1,0 +1,3 @@
+lifecycle,frame.activated
+lifecycle,frame.deactivated
+startup,splash
