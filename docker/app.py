@@ -23,8 +23,9 @@ def do_recommendation():
     try:
         bucket, user_events, tips = reader.read_request_json(content)
     except Exception:
-        logging.info(content)
-        return
+        logging.error("JSON file failed to be read.")
+        logging.error(content)
+        raise
 
     logging.info("User events and tips read.")
     
@@ -36,7 +37,8 @@ def do_recommendation():
     logging.info("Recommendation made: " + str(recommendation))
 
     data = {"showingOrder": recommendation,
-            "usedAlgorithm": method.name}
+            "usedAlgorithm": method.name,
+            "version": "0.1"}
 
     return data
 

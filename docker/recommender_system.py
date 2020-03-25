@@ -2,6 +2,7 @@ import logging
 import time
 import os
 import pickle
+import random
 
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
@@ -63,10 +64,13 @@ def recommend(user_events, tips, method):
         logging.info(str(method.name) + " recommender done.")
 
     recommendation_set = set(recommendation)
+    recommendation_unsorted = []
     if len(recommendation) != len(tips):
         for tip in tips:
             if tip not in recommendation_set:
-                recommendation.append(tip)
+                recommendation_unsorted.append(tip)
+    random.shuffle(recommendation_unsorted)
+    recommendation.extend(recommendation_unsorted)
     end = time.time()
     logging.info("Recommendation process done, TIME: " + str(end - start))
 

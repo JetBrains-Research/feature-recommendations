@@ -46,7 +46,8 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
         tips_to_recommend = []
         for event in events:
             for tip in event_to_tips(event[0]):
-                tips_to_recommend.append(tip)
+                if tip in tips:
+                    tips_to_recommend.append(tip)
         logging.info("RecommenderTopEventWithProbability:recommend: tip generated.")
 
         return tips_to_recommend

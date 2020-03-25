@@ -56,7 +56,8 @@ class RecommenderTopEvent(Recommender):
             if (top_event not in test_device_events.keys())\
                     and _is_intersection(tips, event_to_tips(top_event)) > 0:
                 for tip in event_to_tips(top_event):
-                    tips_to_recommend.append(tip)
+                    if tip in tips:
+                        tips_to_recommend.append(tip)
         
         logging.info("RecommenderTopEvent:recommend: recommendation made.")
         return tips_to_recommend
