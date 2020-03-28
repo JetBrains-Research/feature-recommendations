@@ -18,11 +18,11 @@ METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
     Method.PROB: RecommenderTopEventWithProbability,
     Method.MATRIX: BayesianPersonalizedRanking,
-    Method.EMPTY_0: RecommenderRandom,
-    Method.EMPTY_1: RecommenderRandom,
-    Method.EMPTY_2: RecommenderRandom,
-    Method.EMPTY_3: RecommenderRandom,
-    Method.EMPTY_4: RecommenderRandom,
+    Method.RANDOM_0: RecommenderRandom,
+    Method.RANDOM_1: RecommenderRandom,
+    Method.RANDOM_2: RecommenderRandom,
+    Method.RANDOM_3: RecommenderRandom,
+    Method.RANDOM_4: RecommenderRandom,
 }
 
 is_trained = True

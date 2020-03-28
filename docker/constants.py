@@ -9,11 +9,11 @@ class Method(Enum):
     TOP = 0
     PROB = 1
     MATRIX = 2
-    EMPTY_0 = 3
-    EMPTY_1 = 4
-    EMPTY_2 = 5
-    EMPTY_3 = 6
-    EMPTY_4 = 7
+    RANDOM_0 = 3
+    RANDOM_1 = 4
+    RANDOM_2 = 5
+    RANDOM_3 = 6
+    RANDOM_4 = 7
 
 
 METHODS_CNT = 8
@@ -35,9 +35,9 @@ METHOD_TO_FILE_NAME = {
     Method.TOP: TOP_MODEL_FILE,
     Method.PROB: PROB_MODEL_FILE,
     Method.MATRIX: MATRIX_MODEL_FILE,
-    Method.EMPTY_0: RANDOM_MODEL_FILE,
-    Method.EMPTY_1: RANDOM_MODEL_FILE,
-    Method.EMPTY_2: RANDOM_MODEL_FILE,
-    Method.EMPTY_3: RANDOM_MODEL_FILE,
-    Method.EMPTY_4: RANDOM_MODEL_FILE,
+    Method.RANDOM_0: RANDOM_MODEL_FILE,
+    Method.RANDOM_1: RANDOM_MODEL_FILE,
+    Method.RANDOM_2: RANDOM_MODEL_FILE,
+    Method.RANDOM_3: RANDOM_MODEL_FILE,
+    Method.RANDOM_4: RANDOM_MODEL_FILE,
 }
