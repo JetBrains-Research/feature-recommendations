@@ -133,4 +133,6 @@ dmypy.json
 **/log_sample_with_answers_full.csv
 **/log_sample_small.csv
 **/models
+!**/models/random.pickle
+
 

@@ -7,6 +7,8 @@ import random
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_matrix_factorization import BayesianPersonalizedRanking
+from recommenders.recommender_random import RecommenderRandom
+
 import reader
 from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
 
@@ -15,7 +17,12 @@ logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
     Method.PROB: RecommenderTopEventWithProbability,
-    Method.MATRIX: BayesianPersonalizedRanking
+    Method.MATRIX: BayesianPersonalizedRanking,
+    Method.EMPTY_0: RecommenderRandom,
+    Method.EMPTY_1: RecommenderRandom,
+    Method.EMPTY_2: RecommenderRandom,
+    Method.EMPTY_3: RecommenderRandom,
+    Method.EMPTY_4: RecommenderRandom,
 }
 
 is_trained = True
