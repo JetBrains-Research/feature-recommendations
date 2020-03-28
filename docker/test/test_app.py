@@ -80,8 +80,11 @@ def _evaluate_recommendations(user_to_done, user_to_recommendation):
             true_recommendations[algorithm] += 1
 
     recommendation_accuracy = {}
-    for device_id in all_recommendations.keys():
-        recommendation_accuracy[device_id] = true_recommendations[device_id] / all_recommendations[device_id]
+    for method in all_recommendations.keys():
+        if all_recommendations[method] != 0:
+            recommendation_accuracy[method] = true_recommendations[method] / all_recommendations[method]
+        else:
+            recommendation_accuracy[method] = -1
 
     return recommendation_accuracy
 

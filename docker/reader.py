@@ -30,17 +30,18 @@ def read_tip_to_event(file_name):
     with open(file_name, 'r') as fin:
         for html_to_event in tqdm(csv.reader(fin, delimiter=',')):
             tip = html_to_event[0]
-            action_id = html_to_event[1]
-                
-            if tip in _tip_to_action_ids_dict.keys():
-                _tip_to_action_ids_dict[tip].append(action_id)
-            else:
-                _tip_to_action_ids_dict[tip] = [action_id]
+            action_ids_string = html_to_event[1]
+            action_ids = action_ids_string.split(" ")
+            for action_id in action_ids:
+                if tip in _tip_to_action_ids_dict.keys():
+                    _tip_to_action_ids_dict[tip].append(action_id)
+                else:
+                    _tip_to_action_ids_dict[tip] = [action_id]
 
-            if action_id in _action_id_to_tips_dict.keys():
-                _action_id_to_tips_dict[action_id].append(tip)
-            else:
-                _action_id_to_tips_dict[action_id] = [tip]
+                if action_id in _action_id_to_tips_dict.keys():
+                    _action_id_to_tips_dict[action_id].append(tip)
+                else:
+                    _action_id_to_tips_dict[action_id] = [tip]
     return _tip_to_action_ids_dict, _action_id_to_tips_dict
 
 
@@ -81,6 +82,9 @@ def _check_group_event_id(group_id, event_id):
 
 
 def _extract_from_csv_row(event_data):
+    ide = event_data[19]
+    if ide != "PC":
+        print(f"Not PyCharm found: " + ide)
     count = event_data[12].split('.')[0]
     if count:
         count = int(count)
