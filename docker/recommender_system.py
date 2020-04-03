@@ -4,13 +4,14 @@ import os
 import pickle
 import random
 
+import reader
+from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_matrix_factorization import BayesianPersonalizedRanking
 from recommenders.recommender_random import RecommenderRandom
-
-import reader
-from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
+from recommenders.recommender_widely_used import RecommenderWidelyUsed
+from recommenders.recommender_codis import RecommenderCoDis
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -18,11 +19,19 @@ METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
     Method.PROB: RecommenderTopEventWithProbability,
     Method.MATRIX: BayesianPersonalizedRanking,
-    Method.RANDOM_0: RecommenderRandom,
-    Method.RANDOM_1: RecommenderRandom,
+    Method.WIDE: RecommenderWidelyUsed,
+    Method.CODIS: RecommenderCoDis,
+    Method.RANDOM: RecommenderRandom,
+    Method.TOP_2: RecommenderTopEvent,
+    Method.PROB_2: RecommenderTopEventWithProbability,
+    Method.MATRIX_2: BayesianPersonalizedRanking,
+    Method.WIDE_2: RecommenderWidelyUsed,
+    Method.CODIS_2: RecommenderCoDis,
     Method.RANDOM_2: RecommenderRandom,
-    Method.RANDOM_3: RecommenderRandom,
-    Method.RANDOM_4: RecommenderRandom,
+    Method.PROB_3: RecommenderTopEventWithProbability,
+    Method.MATRIX_3: BayesianPersonalizedRanking,
+    Method.WIDE_3: RecommenderWidelyUsed,
+    Method.CODIS_3: RecommenderCoDis
 }
 
 is_trained = True

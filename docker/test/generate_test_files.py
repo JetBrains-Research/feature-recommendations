@@ -23,10 +23,12 @@ def _generate_json(events_types, test_events, test_labels, device_id_to_bucket):
             data["tips"].append(t)
     data["usageInfo"] = {}
     data["ideName"] = ""
+    bucket = 0
     for device_id in test_events.keys():
         if (len(list(test_events[device_id]))) > 0:
             data["usageInfo"] = {}
-            data["bucket"] = device_id_to_bucket[device_id]
+            data["bucket"] = bucket
+            bucket += 1
 
             with open("./test_events/" + device_id + ".json", 'w') as fout:
                 for event_type in events_types:
@@ -94,7 +96,7 @@ def _generate_device_id_to_bucket(events):
 def read_events_from_file(file_name):
     events, events_types, devices = reader.read_events_raw(file_name)
 
-    test_devices = np.random.choice(devices, int(len(devices) / 3), replace=False)
+    test_devices = np.random.choice(devices, int(len(devices)), replace=False)
     test_events, test_labels = _generate_test_events_labels(events, test_devices)
 
     device_id_to_bucket = _generate_device_id_to_bucket(events)

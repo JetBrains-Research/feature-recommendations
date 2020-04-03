@@ -76,7 +76,7 @@ def _evaluate_recommendations(user_to_done, user_to_recommendation):
         algorithm = user_to_recommendation[device_id]["usedAlgorithm"]
         all_recommendations[algorithm] += 1
 
-        if _is_intersection(done_tips, recommended_tips):
+        if _is_intersection(done_tips, [recommended_tips[0]]):
             true_recommendations[algorithm] += 1
 
     recommendation_accuracy = {}

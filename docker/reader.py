@@ -173,10 +173,15 @@ def _ignore_old_events(events):
         threshold = max_timestamp - TRAIN_TIME_MILLIS
         if timestamp >= threshold:
             if (device_id, group_id, event_id) in train_events.keys():
-                _, prev_count = train_events[(device_id, group_id, event_id)]
-                train_events[(device_id, group_id, event_id)] = (max_timestamp, prev_count + count)
+                times, prev_count = train_events[(device_id, group_id, event_id)]
+                times.append(timestamp)
+                train_events[(device_id, group_id, event_id)] = (times, prev_count + count)
             else:
-                train_events[(device_id, group_id, event_id)] = (max_timestamp, count)
+                train_events[(device_id, group_id, event_id)] = ([timestamp], count)
+
+    for event in tqdm(train_events.keys()):
+        timestamps, cnt = train_events[event]
+        train_events[event] = (sorted(timestamps), cnt)
     return train_events
 
 

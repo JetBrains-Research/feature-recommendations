@@ -1,6 +1,7 @@
 import logging
 
-from recommenders.recommender_top_event import RecommenderTopEvent, _is_intersection
+from recommenders.recommender_top_event import RecommenderTopEvent
+from recommenders.recommender import _is_intersection
 from reader import event_to_tips
 import numpy as np
 
