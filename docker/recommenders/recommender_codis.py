@@ -3,7 +3,6 @@ from tqdm import tqdm
 from recommenders.recommender import Recommender, _is_intersection
 import operator
 from reader import event_to_tips
-import queue
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 

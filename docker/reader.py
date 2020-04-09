@@ -83,8 +83,6 @@ def _check_group_event_id(group_id, event_id):
 
 def _extract_from_csv_row(event_data):
     ide = event_data[19]
-    if ide != "PC":
-        print(f"Not PyCharm found: " + ide)
     count = event_data[12].split('.')[0]
     if count:
         count = int(count)
@@ -108,7 +106,7 @@ def _extract_from_csv_row(event_data):
     device_id = event_data[7]
     bucket = event_data[9]
 
-    return group_id, event_id, device_id, count, timestamp, bucket
+    return group_id, event_id, device_id, count, timestamp, bucket, ide
 
 
 def read_events_raw(file_name):
@@ -122,12 +120,12 @@ def read_events_raw(file_name):
                 is_first = False
                 continue
 
-            group_id, event_id, device_id, count, timestamp, bucket = _extract_from_csv_row(event_data)
+            group_id, event_id, device_id, count, timestamp, bucket, ide = _extract_from_csv_row(event_data)
 
             if count and _check_group_event_id(group_id, event_id):
                 event_types[(group_id, event_id)] = True
                 devices[device_id] = True
-                events.append((device_id, group_id, event_id, timestamp, count, bucket))
+                events.append((device_id, group_id, event_id, timestamp, count, bucket, ide))
 
     devices = list(devices.keys())
     event_types = list(event_types.keys())
@@ -138,7 +136,7 @@ def get_device_to_max_timestamp(events):
     device_to_max_timestamp = {}
 
     for event in tqdm(events):
-        device_id, _, _, timestamp, _, _ = event
+        device_id, _, _, timestamp, _, _, _ = event
 
         if device_id not in device_to_max_timestamp.keys():
             device_to_max_timestamp[device_id] = timestamp
@@ -152,7 +150,7 @@ def get_device_to_min_timestamp(events):
     device_to_min_timestamp = {}
 
     for event in tqdm(events):
-        device_id, _, _, timestamp, _, _ = event
+        device_id, _, _, timestamp, _, _, _ = event
 
         if device_id not in device_to_min_timestamp.keys():
             device_to_min_timestamp[device_id] = timestamp
@@ -167,7 +165,7 @@ def _ignore_old_events(events):
 
     train_events = {}
     for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, _ = event
+        device_id, group_id, event_id, timestamp, count, _, _ = event
         max_timestamp = device_to_max_timestamp[device_id]
 
         threshold = max_timestamp - TRAIN_TIME_MILLIS

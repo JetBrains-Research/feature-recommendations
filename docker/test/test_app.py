@@ -49,12 +49,9 @@ def _build_done_tips():
 
         user_to_done[file_name[:-5]] = []
 
-        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
-            event = row[:-1].split(",")
-            if event[0] == ACTION_INVOKED_GROUP:
-                tips = event_to_tips(event)
-                for tip in tips:
-                    user_to_done[file_name[:-5]].append(tip)
+        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".json", 'r'):
+            tip = row[:-1]
+            user_to_done[file_name[:-5]].append(tip)
 
     return user_to_done
 
