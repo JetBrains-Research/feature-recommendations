@@ -47,6 +47,12 @@ if not os.path.isdir("./models"):
 
 if is_trained:
     for i in range(METHODS_CNT):
+        if Method(i) == Method.MATRIX_2 or Method(i) == Method.MATRIX_3:
+            algorithms[Method(i)] = algorithms[Method.MATRIX]
+            continue
+        if Method(i) == Method.CODIS_2 or Method(i) == Method.CODIS_3:
+            algorithms[Method(i)] = algorithms[Method.CODIS]
+            continue
         with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
             algorithms[Method(i)] = pickle.load(f)
         logging.info("Algorithm " + str(Method(i).name) + " loaded.")
