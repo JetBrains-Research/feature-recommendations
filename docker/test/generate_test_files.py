@@ -10,12 +10,12 @@ from reader import event_to_tips
 
 
 def _generate_json(events_types, test_events, test_labels, device_id_to_bucket):
-    #if os.path.isdir('./test_events'):
-    #    shutil.rmtree('./test_events')
-    #if os.path.isdir('./test_labels'):
-    #    shutil.rmtree('./test_labels')
-    #os.mkdir("./test_events")
-    #os.mkdir("./test_labels")
+   # if os.path.isdir('./test_events'):
+   #     shutil.rmtree('./test_events')
+   # if os.path.isdir('./test_labels'):
+   #     shutil.rmtree('./test_labels')
+   # os.mkdir("./test_events")
+   # os.mkdir("./test_labels")
 
     data = {"tips": []}
     for elem in events_types:
@@ -58,7 +58,7 @@ def _generate_json(events_types, test_events, test_labels, device_id_to_bucket):
             data["bucket"] = bucket
             bucket += 1
 
-            with open("./test_events/" + device_id + ".json", 'w') as fout:
+            with open("./test_events/" + device_id + "_0.json", 'w') as fout:
                 for event_type in events_types:
                     if event_type in test_events[device_id].keys():
                         max_timestamp, count = test_events[device_id][event_type]
@@ -70,7 +70,7 @@ def _generate_json(events_types, test_events, test_labels, device_id_to_bucket):
 
                 json.dump(data, fout)
 
-            with open("./test_labels/" + device_id + ".json", 'w') as fout:
+            with open("./test_labels/" + device_id + "_0.csv", 'w') as fout:
                 for tip in good_tips[device_id].keys():
                     fout.write(tip + "\n")
 

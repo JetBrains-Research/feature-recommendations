@@ -1,6 +1,0 @@
-ui.dialogs,show
-lifecycle,frame.activated
-lifecycle,project.closed
-lifecycle,frame.deactivated
-ui.dialogs,close
-lifecycle,ide.close

@@ -120,7 +120,12 @@ def read_events_raw(file_name):
                 is_first = False
                 continue
 
+            if len(event_data) < 20:
+                continue
+
             group_id, event_id, device_id, count, timestamp, bucket, ide = _extract_from_csv_row(event_data)
+            if group_id != ACTION_INVOKED_GROUP and group_id != TIPS_GROUP:
+                continue
 
             if count and _check_group_event_id(group_id, event_id):
                 event_types[(group_id, event_id)] = True

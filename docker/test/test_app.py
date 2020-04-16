@@ -27,15 +27,19 @@ def _is_intersection(list1, list2):
 
 def _build_recommendations():
     user_to_recommendation = {}
+    bucket = 0
 
     for file_name in tqdm(FILE_NAMES):
         if not (file_name[-5:] == '.json'):
             continue
 
         json_events = _read_user_events(file_name)
+        json_events["bucket"] = bucket
+        bucket += 1
+        bucket = bucket % 6
         r = requests.post(URL, json=json_events)
 
-        user_to_recommendation[file_name[:-5]] = json.loads(str(r.text))
+        user_to_recommendation[file_name[:-7]] = json.loads(str(r.text))
 
     return user_to_recommendation
 
@@ -47,11 +51,11 @@ def _build_done_tips():
         if not (file_name[-5:] == '.json'):
             continue
 
-        user_to_done[file_name[:-5]] = []
+        user_to_done[file_name[:-7]] = []
 
-        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".json", 'r'):
+        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
             tip = row[:-1]
-            user_to_done[file_name[:-5]].append(tip)
+            user_to_done[file_name[:-7]].append(tip)
 
     return user_to_done
 
@@ -65,7 +69,7 @@ def _evaluate_recommendations(user_to_done, user_to_recommendation):
         true_recommendations[Method(i).name] = 0
 
     for file_name in tqdm(FILE_NAMES):
-        device_id = file_name[:-5]
+        device_id = file_name[:-7]
 
         done_tips = user_to_done[device_id]
         recommended_tips = user_to_recommendation[device_id]["showingOrder"]

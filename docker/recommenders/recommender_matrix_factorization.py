@@ -89,16 +89,28 @@ class BayesianPersonalizedRanking(Recommender):
                 best_index = index
         return best_index
 
+    def test_events_to_matrix(self, test_device_events):
+        data = []
+        row_id = []
+        col_id = []
+        for event in test_device_events.keys():
+            (group_id, event_id) = event
+            if (group_id, event_id) in self.event_to_index.keys():
+                data.append(1)
+                row_id.append(self.event_to_index[(group_id, event_id)])
+                col_id.append(0)
+
+        matrix = coo_matrix((np.array(data), (np.array(row_id), np.array(col_id))),
+                            dtype=float, shape=(len(self.event_types), len(self.train_devices)))
+
+        return matrix.transpose().tocsr()
+
     def recommend(self, test_device_events, tips):
         logging.info("BayesianPersonalizedRanking: matrix data computed, recommend started")
 
-        test_device_indices = self._get_indices_by_events(test_device_events)
+        test_matrix = self.test_events_to_matrix(test_device_events)
 
-        closest_device_index = self._find_closest_device(test_device_indices)
-
-        user_items = self.matrix.transpose().tocsr()
-
-        recommendation = self.model.recommend(closest_device_index, user_items, N=len(self.event_types))
+        recommendation = self.model.recommend(0, test_matrix, N=len(self.event_types))
         logging.info("BayesianPersonalizedRanking: model recommend")
         recommendation_list = []
         for event, _ in recommendation:

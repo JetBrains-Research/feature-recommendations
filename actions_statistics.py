@@ -1,48 +1,52 @@
 from tqdm import tqdm
+import operator
 
 from reader import read_events_raw, event_to_tips
-from constants import INPUT_FILE_NAME, TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS
-
-INPUT_FILE_NAME = "./log_sample_with_answers_full.csv"
+from constants import INPUT_FILE_NAME, ACTION_INVOKED_GROUP
 
 
-def compute_statistics(events, device_cnt):
-    ide_to_actions = {}
-    all_tips = 0  # do dictionary when algorithm name added to logs
-    useful_tips = 0
-    device_to_tips = {}
-    tip_types = {}
-    for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, bucket = event
-        if group_id == TIPS_GROUP:
-            if device_id not in device_to_tips:
-                device_to_tips[device_id] = []
-            device_to_tips[device_id].append((event_id, timestamp))
-            all_tips += 1
-            tip_types[event_id] = True
+def _get_event_to_count(train_events):
+    event_to_count = {}
 
-    good_devices = {}
-    good_tips = {}
-    for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, bucket = event
-        if group_id == ACTION_INVOKED_GROUP:
-            if device_id in device_to_tips.keys():
-                possible_tips = event_to_tips((group_id, event_id))
-                showed_tips = device_to_tips[device_id]
-                for elem in showed_tips:
-                    tip, tip_timestamp = elem
-                    if tip in possible_tips and timestamp > tip_timestamp \
-                            and (timestamp - tip_timestamp) < PREDICTED_TIME_MILLIS:
-                        useful_tips += 1
-                        good_devices[device_id] = True
-                        good_tips[tip] = True
+    for (group_id, event_id, device_id, cnt) in tqdm(train_events):
+        if (group_id, event_id) in event_to_count.keys():
+            event_to_count[(group_id, event_id)] = event_to_count[(group_id, event_id)] + cnt
+        else:
+            event_to_count[(group_id, event_id)] = cnt
+    return event_to_count
 
-    accuracy = useful_tips / all_tips
-    users_accuracy = len(list(good_devices.keys())) * 1. / device_cnt
-    tips_accuracy = len(list(good_tips.keys())) * 1. / len(list(tip_types.keys()))
-    return accuracy, users_accuracy, tips_accuracy
+
+def _get_top_events(train_events):
+    event_to_count = _get_event_to_count(train_events)
+
+    sorted_by_count_events = sorted(event_to_count.items(), key=operator.itemgetter(1), reverse=True)
+
+    all_count_sum = 0
+    for event_count in sorted_by_count_events:
+        all_count_sum += event_count[1]
+
+    top_events = [x[0][1] for x in sorted_by_count_events]
+    return top_events
+
+
+def _split_events_by_ide(events):
+    ide_to_events = {}
+    for (device_id, group_id, event_id, timestamp, count, bucket, ide) in events:
+        if ide not in ide_to_events.keys():
+            ide_to_events[ide] = []
+        if group_id == ACTION_INVOKED_GROUP and len(event_to_tips((group_id, event_id))) > 0:
+            ide_to_events[ide].append((group_id, event_id, device_id, count))
+
+    return ide_to_events
 
 
 if __name__ == "__main__":
     events, event_types, devices = read_events_raw(INPUT_FILE_NAME)
-    ide_to_top_actions = compute_statistics(events, len(devices))
+    ide_to_events = _split_events_by_ide(events)
+    ide_to_top = {}
+    for ide in ide_to_events.keys():
+        ide_to_top[ide] = _get_top_events(ide_to_events[ide])[:10]
+
+    for ide in ide_to_top.keys():
+        print(ide)
+        print(ide_to_top[ide])
