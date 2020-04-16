@@ -33,13 +33,12 @@ def _build_recommendations():
         if not (file_name[-5:] == '.json'):
             continue
 
+        user_to_recommendation[file_name[:-7]] = {}
         json_events = _read_user_events(file_name)
-        json_events["bucket"] = bucket
-        bucket += 1
-        bucket = bucket % 6
-        r = requests.post(URL, json=json_events)
-
-        user_to_recommendation[file_name[:-7]] = json.loads(str(r.text))
+        for i in range(METHODS_CNT):
+            json_events["bucket"] = i
+            r = requests.post(URL, json=json_events)
+            user_to_recommendation[file_name[:-7]][i] = json.loads(str(r.text))
 
     return user_to_recommendation
 
@@ -72,13 +71,14 @@ def _evaluate_recommendations(user_to_done, user_to_recommendation):
         device_id = file_name[:-7]
 
         done_tips = user_to_done[device_id]
-        recommended_tips = user_to_recommendation[device_id]["showingOrder"]
+        for i in range(METHODS_CNT):
+            recommended_tips = user_to_recommendation[device_id][i]["showingOrder"]
 
-        algorithm = user_to_recommendation[device_id]["usedAlgorithm"]
-        all_recommendations[algorithm] += 1
+            algorithm = user_to_recommendation[device_id][i]["usedAlgorithm"]
+            all_recommendations[algorithm] += 1
 
-        if _is_intersection(done_tips, [recommended_tips[0]]):
-            true_recommendations[algorithm] += 1
+            if _is_intersection(done_tips, [recommended_tips[0]]):
+                true_recommendations[algorithm] += 1
 
     recommendation_accuracy = {}
     for method in all_recommendations.keys():

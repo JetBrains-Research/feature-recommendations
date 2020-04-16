@@ -58,7 +58,7 @@ class BayesianPersonalizedRanking(Recommender):
         self.matrix = self._generate_matrix()
         logging.info("BayesianPersonalizedRanking: matrix generated")
         
-        self.model = implicit.bpr.BayesianPersonalizedRanking(factors=50)
+        self.model = implicit.als.AlternatingLeastSquares(factors=50)
         self.model.fit(self.matrix, show_progress=True)
         logging.info("BayesianPersonalizedRanking: model fit")
 
@@ -105,15 +105,53 @@ class BayesianPersonalizedRanking(Recommender):
 
         return matrix.transpose().tocsr()
 
+    def _generate_test_matrix(self, test_device_events):
+        data = []
+        row_id = []
+        col_id = []
+        for event in self.train_events.keys():
+            (device_id, group_id, event_id) = event
+            data.append(1)
+            row_id.append(self.event_to_index[(group_id, event_id)])
+            col_id.append(self.device_to_index[device_id])
+
+        for event in test_device_events.keys():
+            (group_id, event_id) = event
+            if (group_id, event_id) in self.event_to_index.keys():
+                data.append(1)
+                row_id.append(self.event_to_index[(group_id, event_id)])
+                col_id.append(len(self.device_to_index.keys()))
+
+        matrix = coo_matrix((np.array(data), (np.array(row_id), np.array(col_id))),
+                            dtype=float, shape=(len(self.event_types), len(self.train_devices) + 1))
+
+        return matrix.transpose().tocsr()
+
+    @staticmethod
+    def _check_matrix_vector_equal(recommendation_vector, recommendation_matrix):
+        for i in range(len(recommendation_vector)):
+            if recommendation_vector[i][0] != recommendation_matrix[i][0]:
+                return False
+        return True
+
     def recommend(self, test_device_events, tips):
         logging.info("BayesianPersonalizedRanking: matrix data computed, recommend started")
 
-        test_matrix = self.test_events_to_matrix(test_device_events)
+        test_vector = self.test_events_to_matrix(test_device_events)
+        #test_matrix = self._generate_test_matrix(test_device_events)
 
-        recommendation = self.model.recommend(0, test_matrix, N=len(self.event_types))
+        recommendation_vector = self.model.recommend(0, test_vector, N=len(self.event_types), recalculate_user=True)
+
+      #  recommendation_matrix = self.model.recommend(len(self.device_to_index.keys()), test_matrix, N=len(self.event_types), recalculate_user=True)
+
+       # if not self._check_matrix_vector_equal(recommendation_vector, recommendation_matrix):
+       #     logging.error("MATRIX VECTOR DOES NOT MATCH")
+       #     logging.info(recommendation_vector)
+       #     logging.info(recommendation_matrix)
+
         logging.info("BayesianPersonalizedRanking: model recommend")
         recommendation_list = []
-        for event, _ in recommendation:
+        for event, _ in recommendation_vector:
             if event_to_tips(self.event_types[event]) and\
                     _is_intersection(tips, event_to_tips(self.event_types[event])) > 0 and \
                     self.event_types[event] not in test_device_events:
