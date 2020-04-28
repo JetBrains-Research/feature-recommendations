@@ -1,6 +1,7 @@
 import logging
 from tqdm import tqdm
-from recommenders.recommender import Recommender, _is_intersection
+from recommenders.recommender import Recommender
+from util import _is_intersection
 import operator
 from reader import event_to_tips
 
@@ -85,9 +86,10 @@ def _get_last_session(test_device_events):
 
 
 class RecommenderCoDis(Recommender):
-    def __init__(self, train_devices, event_types, train_events):
-        logging.info("RecommenderCo+Dis:init: init started.")
-        super(RecommenderCoDis, self).__init__(train_devices, event_types, train_events)
+    def __init__(self, train_devices, event_types, train_events, is_logging=True):
+        if is_logging:
+            logging.info("RecommenderCo+Dis:init: init started.")
+        super(RecommenderCoDis, self).__init__(train_devices, event_types, train_events, is_logging)
         cf_matrix, df_matrix = _build_cf_df(event_types, train_events)
         self.cp_matrix, self.dp_matrix = _build_cp_dp(event_types, cf_matrix, df_matrix)
 
@@ -114,7 +116,8 @@ class RecommenderCoDis(Recommender):
                     if tip in tips:
                         tips_to_recommend.append(tip)
 
-        logging.info("RecommenderCo+Dis:recommend: recommendation made.")
+        if self.is_logging:
+            logging.info("RecommenderCo+Dis:recommend: recommendation made.")
         return tips_to_recommend
 
 

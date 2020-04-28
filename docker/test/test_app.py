@@ -3,9 +3,8 @@ import os
 import json
 import requests
 
-from constants import ACTION_INVOKED_GROUP, Method, METHODS_CNT
-from reader import event_to_tips
-
+from constants import Method, METHODS_CNT
+from metrics import compute_map_k, compute_ndcg_k, compute_accuracy_first, compute_mrr_k
 
 TEST_EVENTS_DIR = "./test_events"
 TEST_LABELS_DIR = "./test_labels"
@@ -29,16 +28,18 @@ def _build_recommendations():
     user_to_recommendation = {}
     bucket = 0
 
+    for i in range(METHODS_CNT):
+        user_to_recommendation[i] = {}
+
     for file_name in tqdm(FILE_NAMES):
         if not (file_name[-5:] == '.json'):
             continue
 
-        user_to_recommendation[file_name[:-7]] = {}
         json_events = _read_user_events(file_name)
         for i in range(METHODS_CNT):
             json_events["bucket"] = i
             r = requests.post(URL, json=json_events)
-            user_to_recommendation[file_name[:-7]][i] = json.loads(str(r.text))
+            user_to_recommendation[i][file_name[:-5]] = json.loads(str(r.text))['showingOrder']
 
     return user_to_recommendation
 
@@ -50,53 +51,59 @@ def _build_done_tips():
         if not (file_name[-5:] == '.json'):
             continue
 
-        user_to_done[file_name[:-7]] = []
+        user_to_done[file_name[:-5]] = []
 
         for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
             tip = row[:-1]
-            user_to_done[file_name[:-7]].append(tip)
+            user_to_done[file_name[:-5]].append(tip)
 
     return user_to_done
 
 
 def _evaluate_recommendations(user_to_done, user_to_recommendation):
-    all_recommendations = {}
-    true_recommendations = {}
+    map_5 = {}
+    map_10 = {}
+    ndcg_5 = {}
+    ndcg_10 = {}
+    mrr_5 = {}
+    mrr_10 = {}
+    accuracy = {}
 
     for i in range(METHODS_CNT):
-        all_recommendations[Method(i).name] = 0
-        true_recommendations[Method(i).name] = 0
+        map_5[Method(i).name] = compute_map_k(user_to_done, user_to_recommendation[i], 5)
+        map_10[Method(i).name] = compute_map_k(user_to_done, user_to_recommendation[i], 10)
+        ndcg_5[Method(i).name] = compute_ndcg_k(user_to_done, user_to_recommendation[i], 5)
+        ndcg_10[Method(i).name] = compute_ndcg_k(user_to_done, user_to_recommendation[i], 10)
+        mrr_5[Method(i).name] = compute_mrr_k(user_to_done, user_to_recommendation[i], 5)
+        mrr_10[Method(i).name] = compute_mrr_k(user_to_done, user_to_recommendation[i], 10)
+        accuracy[Method(i).name] = compute_accuracy_first(user_to_done, user_to_recommendation[i])
 
-    for file_name in tqdm(FILE_NAMES):
-        device_id = file_name[:-7]
-
-        done_tips = user_to_done[device_id]
-        for i in range(METHODS_CNT):
-            recommended_tips = user_to_recommendation[device_id][i]["showingOrder"]
-
-            algorithm = user_to_recommendation[device_id][i]["usedAlgorithm"]
-            all_recommendations[algorithm] += 1
-
-            if _is_intersection(done_tips, [recommended_tips[0]]):
-                true_recommendations[algorithm] += 1
-
-    recommendation_accuracy = {}
-    for method in all_recommendations.keys():
-        if all_recommendations[method] != 0:
-            recommendation_accuracy[method] = true_recommendations[method] / all_recommendations[method]
-        else:
-            recommendation_accuracy[method] = -1
-
-    return recommendation_accuracy
+    return map_5, map_10, ndcg_5, ndcg_10, mrr_5, mrr_10, accuracy
 
 
 def run_test():
     user_to_recommendation = _build_recommendations()
     user_to_done = _build_done_tips()
-    recommendation_accuracy = _evaluate_recommendations(user_to_done, user_to_recommendation)
+    print(user_to_recommendation[0]['1112191be9fc10c-e687-4acf-8cbe-96901cd2cc22_1'])
+    map_5, map_10, ndcg_5, ndcg_10, mrr_5, mrr_10, accuracy =\
+        _evaluate_recommendations(user_to_done, user_to_recommendation)
 
     for i in range(METHODS_CNT):
-        print(f"{Method(i).name}: {recommendation_accuracy[Method(i).name]}")
+        print(f"{Method(i).name}: map@5 = {map_5[Method(i).name]}")
+        print(f"{Method(i).name}: map@10 = {map_10[Method(i).name]}")
+        print(f"{Method(i).name}: nDCG@5 = {ndcg_5[Method(i).name]}")
+        print(f"{Method(i).name}: nDCG@10 = {ndcg_10[Method(i).name]}")
+        print(f"{Method(i).name}: MRR@5 = {mrr_5[Method(i).name]}")
+        print(f"{Method(i).name}: MRR@10 = {mrr_10[Method(i).name]}")
+        print(f"{Method(i).name}: accuracy of first = {accuracy[Method(i).name]}")
+
+    #for file_name in tqdm(FILE_NAMES):
+    #    device_id = file_name[:-5]
+    #    print(device_id)
+    #    print(user_to_done[device_id])
+    #    for i in range(METHODS_CNT):
+    #        recommended_tips = user_to_recommendation[device_id][i]["showingOrder"]
+    #        print(f"{Method(i).name}: {recommended_tips[:5]}")
 
 
 if __name__ == '__main__':

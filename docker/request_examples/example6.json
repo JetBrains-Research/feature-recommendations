@@ -1,0 +1,34 @@
+{
+  "tips": [
+    "TagNameCompletion.html",
+    "neue-06f3925e.html",
+    "neue-GoToFile.html",
+    "neue-db_tip_view_console_history.html"
+],
+  "usageInfo": {
+    "EditorStartNewLineBefore": {
+      "usageCount": 1,
+      "lastUsedTimestamp": 1582035376883
+    },
+    "ShowSettings": {
+      "usageCount": 1,
+      "lastUsedTimestamp": 1581967961665
+    },
+    "EditorChooseLookupItemReplace": {
+      "usageCount": 3,
+      "lastUsedTimestamp": 1582035365482
+    },
+    "EditorEscape": {
+      "usageCount": 3,
+      "lastUsedTimestamp": 1581967987745
+    },
+    "ToggleLineBreakpoint": {
+      "usageCount": 1,
+      "lastUsedTimestamp": 1582035326556
+    }
+  },
+  "ideName": "idea",
+  "bucket": 2
+}
+
+

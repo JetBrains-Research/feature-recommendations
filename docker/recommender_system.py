@@ -8,7 +8,8 @@ import reader
 from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
-from recommenders.recommender_matrix_factorization import BayesianPersonalizedRanking
+from recommenders.recommender_als import AlternatingLeastSquares
+from recommenders.recommender_bpr import BayesianPersonalizedRanking
 from recommenders.recommender_random import RecommenderRandom
 from recommenders.recommender_widely_used import RecommenderWidelyUsed
 from recommenders.recommender_codis import RecommenderCoDis
@@ -18,25 +19,26 @@ logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
     Method.PROB: RecommenderTopEventWithProbability,
-    Method.MATRIX: BayesianPersonalizedRanking,
+    Method.MATRIX_ALS: AlternatingLeastSquares,
     Method.WIDE: RecommenderWidelyUsed,
     Method.CODIS: RecommenderCoDis,
     Method.RANDOM: RecommenderRandom,
     Method.TOP_2: RecommenderTopEvent,
     Method.PROB_2: RecommenderTopEventWithProbability,
-    Method.MATRIX_2: BayesianPersonalizedRanking,
+    Method.MATRIX_BPR: BayesianPersonalizedRanking,
     Method.WIDE_2: RecommenderWidelyUsed,
     Method.CODIS_2: RecommenderCoDis,
-    Method.RANDOM_2: RecommenderRandom,
-    Method.PROB_3: RecommenderTopEventWithProbability,
-    Method.MATRIX_3: BayesianPersonalizedRanking,
+    Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
     Method.WIDE_3: RecommenderWidelyUsed,
-    Method.CODIS_3: RecommenderCoDis
+    Method.CODIS_3: RecommenderCoDis,
+    Method.WEIGHTS: RecommenderRandom,  # Replace when weights are ready
+    Method.WEIGHTS_2: RecommenderRandom  # Replace when weights are ready
 }
 
 is_trained = True
 for i in range(METHODS_CNT):
-    if not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
+    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS and Method(i) != Method.WEIGHTS_2 \
+            and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
         is_trained = False
         break
 
@@ -45,34 +47,26 @@ algorithms = {}
 if not os.path.isdir("./models"):
     os.mkdir("./models")
 
-if is_trained:
-    for i in range(METHODS_CNT):
-        if Method(i) == Method.MATRIX_2 or Method(i) == Method.MATRIX_3:
-            algorithms[Method(i)] = algorithms[Method.MATRIX]
-            continue
-        if Method(i) == Method.CODIS_2 or Method(i) == Method.CODIS_3:
-            algorithms[Method(i)] = algorithms[Method.CODIS]
-            continue
-        with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
-            algorithms[Method(i)] = pickle.load(f)
-        logging.info("Algorithm " + str(Method(i).name) + " loaded.")
-
-else:
+if not is_trained:
     logging.info("Train data reading...")
     train_events, events_types, train_device_ids = reader.read_events_from_file()
     logging.info("Train data read.")
 
-    for i in range(METHODS_CNT):
-        if os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
-            with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
-                algorithms[Method(i)] = pickle.load(f)
-                logging.info("Algorithm " + str(Method(i).name) + " loaded.")
-        else:
+for i in range(METHODS_CNT):
+    if os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
+        with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
+            algorithms[Method(i)] = pickle.load(f)
+            logging.info("Algorithm " + str(Method(i).name) + " loaded.")
+    else:
+        if not is_trained:
+            # noinspection PyUnboundLocalVariable
             algorithms[Method(i)] = METHOD_TO_CLASS[Method(i)](train_device_ids, events_types, train_events)
-            logging.info("Algorithm " + str(Method(i).name) + " generated.")
-            with open(METHOD_TO_FILE_NAME[Method(i)], 'wb') as f:
-                pickle.dump(algorithms[Method(i)], f)
-                logging.info("Algorithm " + str(Method(i).name) + " saved.")
+        else:
+            algorithms[Method(i)] = METHOD_TO_CLASS[Method(i)](None, None, None)
+        logging.info("Algorithm " + str(Method(i).name) + " generated.")
+        with open(METHOD_TO_FILE_NAME[Method(i)], 'wb') as f:
+            pickle.dump(algorithms[Method(i)], f)
+            logging.info("Algorithm " + str(Method(i).name) + " saved.")
 
 
 def recommend(user_events, tips, method):

@@ -12,28 +12,26 @@ def evaluate(events, device_cnt):
     device_to_tips = {}
     tip_types = {}
     for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, bucket = event
-        if group_id == TIPS_GROUP:
-            if device_id not in device_to_tips:
-                device_to_tips[device_id] = []
-            device_to_tips[device_id].append((event_id, timestamp))
+        if event.group_id == TIPS_GROUP:
+            if event.device_id not in device_to_tips:
+                device_to_tips[event.device_id] = []
+            device_to_tips[event.device_id].append((event.event_id, event.timestamp))
             all_tips += 1
-            tip_types[event_id] = True
+            tip_types[event.event_id] = True
 
     good_devices = {}
     good_tips = {}
     for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, bucket = event
-        if group_id == ACTION_INVOKED_GROUP:
-            if device_id in device_to_tips.keys():
-                possible_tips = event_to_tips((group_id, event_id))
-                showed_tips = device_to_tips[device_id]
+        if event.group_id == ACTION_INVOKED_GROUP:
+            if event.device_id in device_to_tips.keys():
+                possible_tips = event_to_tips(event)
+                showed_tips = device_to_tips[event.device_id]
                 for elem in showed_tips:
                     tip, tip_timestamp = elem
-                    if tip in possible_tips and timestamp > tip_timestamp \
-                            and (timestamp - tip_timestamp) < PREDICTED_TIME_MILLIS:
+                    if tip in possible_tips and event.timestamp > tip_timestamp \
+                            and (event.timestamp - tip_timestamp) < PREDICTED_TIME_MILLIS:
                         useful_tips += 1
-                        good_devices[device_id] = True
+                        good_devices[event.device_id] = True
                         good_tips[tip] = True
 
     accuracy = useful_tips / all_tips

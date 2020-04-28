@@ -12,16 +12,13 @@ def _get_current_time_millis(test_device_events):
     return max_timestamp
 
 
-def _is_intersection(list1, list2):
-    return len(set(list1).intersection(list2)) > 0
-
-
 class Recommender:
-    def __init__(self, train_devices, event_types, train_events):
+    def __init__(self, train_devices, event_types, train_events, is_logging):
         self.train_devices = train_devices
         self.event_types = event_types
         self.train_events = train_events
         self.forget_time_millis = FORGET_TIME_DAYS * 24 * 60 * 60 * 1000
+        self.is_logging = is_logging
 
     def _filter_old_test_device_events(self, test_device_events):
         current_time_millis = _get_current_time_millis(test_device_events)

@@ -3,7 +3,8 @@ from tqdm import tqdm
 import json
 import logging
 
-from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS, TIPS_GROUP
+from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS, TIPS_GROUP,\
+    TEST_FILE_NAMES, TEST_LABELS_DIR, TEST_EVENTS_DIR
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -22,6 +23,17 @@ def read_request_json(json_data):
     bucket = int(json_data["bucket"])
 
     return bucket, user_events, tips
+
+
+class EventFull:
+    def __init__(self, group_id, event_id, device_id, count, timestamp, bucket, ide):
+        self.group_id = group_id
+        self.event_id = event_id
+        self.device_id = device_id
+        self.count = count
+        self.timestamp = timestamp
+        self.bucket = bucket
+        self.ide = ide
 
 
 def read_tip_to_event(file_name):
@@ -66,9 +78,9 @@ def event_to_tips(event):
     return []
 
 
-def _check_group_event_id(group_id, event_id):
-    return group_id not in ('performance', 'vcs.change.reminder') \
-           and event_id not in ('ui.lagging',
+def _check_group_event_id(event):
+    return event.group_id not in ('performance', 'vcs.change.reminder') \
+           and event.event_id not in ('ui.lagging',
                                 'ide.error',
                                 'ide.freeze',
                                 'ui.latency',
@@ -106,7 +118,10 @@ def _extract_from_csv_row(event_data):
     device_id = event_data[7]
     bucket = event_data[9]
 
-    return group_id, event_id, device_id, count, timestamp, bucket, ide
+    event = EventFull(group_id=group_id, event_id=event_id, device_id=device_id,
+                      count=count, timestamp=timestamp, bucket=bucket, ide=ide)
+
+    return event
 
 
 def read_events_raw(file_name):
@@ -123,14 +138,14 @@ def read_events_raw(file_name):
             if len(event_data) < 20:
                 continue
 
-            group_id, event_id, device_id, count, timestamp, bucket, ide = _extract_from_csv_row(event_data)
-            if group_id != ACTION_INVOKED_GROUP and group_id != TIPS_GROUP:
+            event = _extract_from_csv_row(event_data)
+            if event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP:
                 continue
 
-            if count and _check_group_event_id(group_id, event_id):
-                event_types[(group_id, event_id)] = True
-                devices[device_id] = True
-                events.append((device_id, group_id, event_id, timestamp, count, bucket, ide))
+            if event.count and _check_group_event_id(event):
+                event_types[(event.group_id, event.event_id)] = True
+                devices[event.device_id] = True
+                events.append(event)
 
     devices = list(devices.keys())
     event_types = list(event_types.keys())
@@ -170,17 +185,16 @@ def _ignore_old_events(events):
 
     train_events = {}
     for event in tqdm(events):
-        device_id, group_id, event_id, timestamp, count, _, _ = event
-        max_timestamp = device_to_max_timestamp[device_id]
+        max_timestamp = device_to_max_timestamp[event.device_id]
 
         threshold = max_timestamp - TRAIN_TIME_MILLIS
-        if timestamp >= threshold:
-            if (device_id, group_id, event_id) in train_events.keys():
-                times, prev_count = train_events[(device_id, group_id, event_id)]
-                times.append(timestamp)
-                train_events[(device_id, group_id, event_id)] = (times, prev_count + count)
+        if event.timestamp >= threshold:
+            if (event.device_id, event.group_id, event.event_id) in train_events.keys():
+                times, prev_count = train_events[(event.device_id, event.group_id, event.event_id)]
+                times.append(event.timestamp)
+                train_events[(event.device_id, event.group_id, event.event_id)] = (times, prev_count + event.count)
             else:
-                train_events[(device_id, group_id, event_id)] = ([timestamp], count)
+                train_events[(event.device_id, event.group_id, event.event_id)] = ([event.timestamp], event.count)
 
     for event in tqdm(train_events.keys()):
         timestamps, cnt = train_events[event]
@@ -201,3 +215,41 @@ def read_events_from_file():
     return train_events, events_types, train_device_ids
 
 
+def ide_to_tips():
+    ide_to_tips = {}
+    events, events_types, train_device_ids = read_events_raw(INPUT_FILE_NAME)
+    for event in events:
+        if event.group_id == TIPS_GROUP:
+            if event.ide not in ide_to_tips.keys():
+                ide_to_tips[event.ide] = {}
+            ide_to_tips[event.ide][event.event_id] = True
+    return ide_to_tips
+
+
+def _read_user_events(file):
+    with open(TEST_EVENTS_DIR + "/" + file, 'r') as fin:
+        data = json.load(fin)
+        return data
+
+
+def read_test_pairs():
+    user_to_events_tips = {}
+    for file_name in tqdm(TEST_FILE_NAMES):
+        if not (file_name[-5:] == '.json'):
+            continue
+        content = _read_user_events(file_name)
+        _, user_events, tips = read_request_json(content)
+
+        user_to_events_tips[file_name[:-5]] = (user_events, tips)
+
+    user_to_done_tips = {}
+    for file_name in tqdm(TEST_FILE_NAMES):
+        if not (file_name[-5:] == '.json'):
+            continue
+
+        user_to_done_tips[file_name[:-5]] = []
+        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
+            tip = row[:-1]
+            user_to_done_tips[file_name[:-5]].append(tip)
+
+    return user_to_events_tips, user_to_done_tips

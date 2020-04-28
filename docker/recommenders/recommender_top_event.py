@@ -2,7 +2,8 @@ import logging
 from tqdm import tqdm
 import operator
 
-from recommenders.recommender import Recommender, _is_intersection
+from recommenders.recommender import Recommender
+from util import _is_intersection
 from reader import event_to_tips
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
@@ -20,33 +21,39 @@ def _get_event_to_count(train_events):
     return event_to_count
 
 
-def _get_top_events(train_events):
-    logging.info("RecommenderTopEvent:get_top_events: generating top events started.")
+def _get_top_events(train_events, is_logging):
+    if is_logging:
+        logging.info("RecommenderTopEvent:get_top_events: generating top events started.")
 
     event_to_count = _get_event_to_count(train_events)
-    logging.info("RecommenderTopEvent:get_top_events: event_to_count computed.")
+    if is_logging:
+        logging.info("RecommenderTopEvent:get_top_events: event_to_count computed.")
 
     sorted_by_count_events = sorted(event_to_count.items(), key=operator.itemgetter(1), reverse=True)
-    logging.info("RecommenderTopEvent:get_top_events: event_to_count sorted.")
+    if is_logging:
+        logging.info("RecommenderTopEvent:get_top_events: event_to_count sorted.")
 
     all_count_sum = 0
     for event_count in sorted_by_count_events:
         all_count_sum += event_count[1]
 
     top_events = [(x[0], x[1] / all_count_sum) for x in sorted_by_count_events]
-    logging.info("RecommenderTopEvent:get_top_events: events top list received.")
+    if is_logging:
+        logging.info("RecommenderTopEvent:get_top_events: events top list received.")
 
     return top_events
 
 
 class RecommenderTopEvent(Recommender):
-    def __init__(self, train_devices, event_types, train_events):
-        logging.info("RecommenderTopEvent:init: init started.")
-        super(RecommenderTopEvent, self).__init__(train_devices, event_types, train_events)
-        self.top_events = _get_top_events(self.train_events)
+    def __init__(self, train_devices, event_types, train_events, is_logging=True):
+        if is_logging:
+            logging.info("RecommenderTopEvent:init: init started.")
+        super(RecommenderTopEvent, self).__init__(train_devices, event_types, train_events, is_logging)
+        self.top_events = _get_top_events(self.train_events, self.is_logging)
     
     def recommend(self, test_device_events, tips):
-        logging.info("RecommenderTopEvent:recommend: recommendation started.")
+        if self.is_logging:
+            logging.info("RecommenderTopEvent:recommend: recommendation started.")
         test_device_events = self._filter_old_test_device_events(test_device_events)
 
         tips_to_recommend = []
@@ -58,6 +65,6 @@ class RecommenderTopEvent(Recommender):
                 for tip in event_to_tips(top_event):
                     if tip in tips:
                         tips_to_recommend.append(tip)
-        
-        logging.info("RecommenderTopEvent:recommend: recommendation made.")
+        if self.is_logging:
+            logging.info("RecommenderTopEvent:recommend: recommendation made.")
         return tips_to_recommend

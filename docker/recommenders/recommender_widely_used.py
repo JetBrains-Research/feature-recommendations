@@ -22,27 +22,32 @@ def _get_event_to_devices_count(train_events):
     return event_to_device_count
 
 
-def _get_top_events(train_events):
-    logging.info("RecommenderWidelyUsed:get_top_events: generating top events started.")
+def _get_top_events(train_events, is_logging):
+    if is_logging:
+        logging.info("RecommenderWidelyUsed:get_top_events: generating top events started.")
 
     event_to_device_count = _get_event_to_devices_count(train_events)
-    logging.info("RecommenderWidelyUsed:get_top_events: event_to_count computed.")
+    if is_logging:
+        logging.info("RecommenderWidelyUsed:get_top_events: event_to_count computed.")
 
     sorted_by_count_events = sorted(event_to_device_count.items(), key=operator.itemgetter(1), reverse=True)
-    logging.info("RecommenderWidelyUsed:get_top_events: event_to_count sorted.")
+    if is_logging:
+        logging.info("RecommenderWidelyUsed:get_top_events: event_to_count sorted.")
 
     all_count_sum = 0
     for event_count in sorted_by_count_events:
         all_count_sum += event_count[1]
 
     top_events = [(x[0], x[1] / all_count_sum) for x in sorted_by_count_events]
-    logging.info("RecommenderWidelyUsed:get_top_events: events top list received.")
+    if is_logging:
+        logging.info("RecommenderWidelyUsed:get_top_events: events top list received.")
 
     return top_events
 
 
 class RecommenderWidelyUsed(RecommenderTopEvent):
-    def __init__(self, train_devices, event_types, train_events):
-        logging.info("RecommenderWidelyUsed:init: init started.")
-        super(RecommenderWidelyUsed, self).__init__(train_devices, event_types, train_events)
-        self.top_events = _get_top_events(self.train_events)
+    def __init__(self, train_devices, event_types, train_events, is_logging=True):
+        if is_logging:
+            logging.info("RecommenderWidelyUsed:init: init started.")
+        super(RecommenderWidelyUsed, self).__init__(train_devices, event_types, train_events, is_logging)
+        self.top_events = _get_top_events(self.train_events, self.is_logging)

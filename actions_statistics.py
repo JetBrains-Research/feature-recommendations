@@ -31,11 +31,11 @@ def _get_top_events(train_events):
 
 def _split_events_by_ide(events):
     ide_to_events = {}
-    for (device_id, group_id, event_id, timestamp, count, bucket, ide) in events:
+    for event in events:
         if ide not in ide_to_events.keys():
             ide_to_events[ide] = []
-        if group_id == ACTION_INVOKED_GROUP and len(event_to_tips((group_id, event_id))) > 0:
-            ide_to_events[ide].append((group_id, event_id, device_id, count))
+        if event.group_id == ACTION_INVOKED_GROUP and len(event_to_tips(event)) > 0:
+            ide_to_events[ide].append((event.group_id, event.event_id, event.device_id, event.count))
 
     return ide_to_events
 
