@@ -135,6 +135,7 @@ dmypy.json
 **/models
 !**/models/random.pickle
 */new_*
-**/test/test_*
+**/test/test_*/*.json
+**/test/test_*/*.csv
 !**/.gitkeep
 **/resources/new_*
