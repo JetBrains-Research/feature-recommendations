@@ -134,5 +134,4 @@ dmypy.json
 **/log_sample_small.csv
 **/models
 !**/models/random.pickle
-**/test/test_*
-**/new_*
+*/new_*
