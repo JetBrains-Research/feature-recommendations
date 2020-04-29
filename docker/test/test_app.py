@@ -17,7 +17,7 @@ def _read_user_events(file):
         return data
 
 
-URL = "http://0.0.0.0:5000/tips/v1"
+URL = "http://3.126.201.114/tips/v1"
 
 
 def _is_intersection(list1, list2):

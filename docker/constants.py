@@ -29,7 +29,6 @@ METHODS_CNT = 16
 
 PATH = os.path.split(__file__)[0]
 INPUT_FILE_NAME = PATH + '/resources/' + 'new_mar_2.csv'
-INPUT_FILE_NAME_TEST = PATH + '/resources/' + 'new_feb_09.csv'
 TIP_TO_EVENT_FILE_NAME = PATH + "/resources/html_to_action_id.csv"
 
 PREDICTED_TIME_MILLIS = 2 * 60 * 60 * 1000

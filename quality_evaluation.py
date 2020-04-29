@@ -3,7 +3,7 @@ from tqdm import tqdm
 from reader import read_events_raw, event_to_tips
 from constants import INPUT_FILE_NAME, TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS
 
-# INPUT_FILE_NAME = "./log_sample_with_answers_full.csv"
+INPUT_FILE_NAME = "./docker/resources/new_feb_1.csv"
 
 
 def evaluate(events, device_cnt):
@@ -24,7 +24,7 @@ def evaluate(events, device_cnt):
     for event in tqdm(events):
         if event.group_id == ACTION_INVOKED_GROUP:
             if event.device_id in device_to_tips.keys():
-                possible_tips = event_to_tips(event)
+                possible_tips = event_to_tips(event.group_id, event.event_id)
                 showed_tips = device_to_tips[event.device_id]
                 for elem in showed_tips:
                     tip, tip_timestamp = elem

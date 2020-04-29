@@ -61,8 +61,8 @@ class RecommenderTopEvent(Recommender):
         for top_event in self.top_events:
             top_event = top_event[0]
             if (top_event not in test_device_events.keys())\
-                    and _is_intersection(tips, event_to_tips(top_event)) > 0:
-                for tip in event_to_tips(top_event):
+                    and _is_intersection(tips, event_to_tips(top_event[0], top_event[1])) > 0:
+                for tip in event_to_tips(top_event[0], top_event[1]):
                     if tip in tips:
                         tips_to_recommend.append(tip)
         if self.is_logging:

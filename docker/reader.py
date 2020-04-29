@@ -67,8 +67,7 @@ def tip_to_event(tip):
     return []
 
 
-def event_to_tips(event):
-    group_id, event_id = event
+def event_to_tips(group_id, event_id):
     if group_id != ACTION_INVOKED_GROUP:
         return []
 
@@ -215,9 +214,9 @@ def read_events_from_file():
     return train_events, events_types, train_device_ids
 
 
-def ide_to_tips():
+def ide_to_tips(file_name):
     ide_to_tips = {}
-    events, events_types, train_device_ids = read_events_raw(INPUT_FILE_NAME)
+    events, events_types, train_device_ids = read_events_raw(file_name)
     for event in events:
         if event.group_id == TIPS_GROUP:
             if event.ide not in ide_to_tips.keys():

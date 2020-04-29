@@ -17,7 +17,7 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
             event = top_event[0]
             probability = top_event[1]
             if (event not in test_device_events.keys()) \
-                    and _is_intersection(tips, event_to_tips(event)) > 0:
+                    and _is_intersection(tips, event_to_tips(event[0], event[1])) > 0:
                 not_done_event_with_prob.append(top_event)
                 all_not_done_top_sum += probability
 
@@ -36,7 +36,7 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
                          str(len(not_done_event_with_prob)) + " found.")
 
         if len(not_done_event_with_prob) <= 0:
-            return event_to_tips(self.top_events[0][0])
+            return event_to_tips(self.top_events[0][0][0], self.top_events[0][0][1])
 
         probs = []
         for event in not_done_event_with_prob:
@@ -49,7 +49,7 @@ class RecommenderTopEventWithProbability(RecommenderTopEvent):
         events = np.array(not_done_event_with_prob)[events_ids]
         tips_to_recommend = []
         for event in events:
-            for tip in event_to_tips(event[0]):
+            for tip in event_to_tips(event[0][0], event[0][1]):
                 if tip in tips:
                     tips_to_recommend.append(tip)
         if self.is_logging:

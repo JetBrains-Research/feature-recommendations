@@ -64,10 +64,10 @@ class BaseMatrixRecommender(Recommender):
     def _generate_recommendation_list(self, recommendations, test_device_events, tips):
         recommendation_list = []
         for event, _ in recommendations:
-            if event_to_tips(self.event_types[event]) and \
-                    _is_intersection(tips, event_to_tips(self.event_types[event])) > 0 and \
-                    self.event_types[event] not in test_device_events:
-                for tip in event_to_tips(self.event_types[event]):
+            if event_to_tips(self.event_types[event][0], self.event_types[event][1]) and \
+                    _is_intersection(tips, event_to_tips(self.event_types[event][0], self.event_types[event][1])) > 0 \
+                    and self.event_types[event] not in test_device_events:
+                for tip in event_to_tips(self.event_types[event][0], self.event_types[event][1]):
                     if tip in tips:
                         recommendation_list.append(tip)
         return recommendation_list
