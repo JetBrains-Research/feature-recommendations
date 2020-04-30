@@ -1,5 +1,6 @@
 import json
-from tqdm import tqdm
+import os
+import shutil
 
 import reader
 from constants import PREDICTED_TIME_MILLIS, TIPS_GROUP, ACTION_INVOKED_GROUP
@@ -15,36 +16,39 @@ def generate_json(events, file_name, file_id):
     tips_done = {}
     tip_id_cur = 0
     ide_tips = ide_to_tips(file_name)
-    print(ide_tips.keys())
 
     data = {"tips": [], "usageInfo": {}, "ideName": ""}
     for event in events:
         if event.group_id == TIPS_GROUP:
             if event.device_id in device_to_done_actions.keys():
-                if event.device_id not in device_to_tips.keys():
-                    device_to_tips[event.device_id] = []
-                device_to_tips[event.device_id].append((event.event_id, event.timestamp, str(tip_id_cur)))
-
                 data["usageInfo"] = {}
                 data["bucket"] = event.bucket
-                with open("./test_events/" + event.device_id + "_"
-                          + str(tip_id_cur) + "_" + str(file_id) + ".json", 'w') as fout:
 
-                    data["tips"] = []
-                    for t in ide_tips[event.ide].keys():
-                        data["tips"].append(t)
-                    data['ideName'] = event.ide
+                data["tips"] = []
+                for t in ide_tips[event.ide].keys():
+                    data["tips"].append(t)
+                data['ideName'] = event.ide
 
-                    for (group_id, event_id, ide) in device_to_done_actions[event.device_id]:
-                        max_timestamp, count = device_to_done_actions[event.device_id][(group_id, event_id, ide)]
-                        if ide == event.ide:
-                            data["usageInfo"][event_id] = {}
-                            data["usageInfo"][event_id]["usageCount"] = count
-                            data["usageInfo"][event_id]["lastUsedTimestamp"] = max_timestamp
+                is_tip_done_before = False
 
-                    json.dump(data, fout)
+                for (group_id, event_id, ide) in device_to_done_actions[event.device_id]:
+                    max_timestamp, count = device_to_done_actions[event.device_id][(group_id, event_id, ide)]
+                    if _is_intersection(event_to_tips(group_id, event_id), [event.event_id]):
+                        is_tip_done_before = True
+                        break
+                    if ide == event.ide:
+                        data["usageInfo"][event_id] = {}
+                        data["usageInfo"][event_id]["usageCount"] = count
+                        data["usageInfo"][event_id]["lastUsedTimestamp"] = max_timestamp
 
-                tip_id_cur += 1
+                if not is_tip_done_before:
+                    with open("./test_events/" + event.device_id + "_"
+                              + str(tip_id_cur) + "_" + str(file_id) + ".json", 'w') as fout:
+                        json.dump(data, fout)
+                    if event.device_id not in device_to_tips.keys():
+                        device_to_tips[event.device_id] = []
+                    device_to_tips[event.device_id].append((event.event_id, event.timestamp, str(tip_id_cur)))
+                    tip_id_cur += 1
 
         else:
             if event.group_id == ACTION_INVOKED_GROUP:
@@ -84,6 +88,16 @@ def generate_test_files(file_name, file_id):
 
 
 if __name__ == '__main__':
+    if os.path.isdir('./test_events'):
+        shutil.rmtree('./test_events')
+    if os.path.isdir('./test_labels_negative'):
+        shutil.rmtree('./test_labels_negative')
+    if os.path.isdir('./test_labels_positive'):
+        shutil.rmtree('./test_labels_positive')
+    os.mkdir("./test_events")
+    os.mkdir("./test_labels_positive")
+    os.mkdir("./test_labels_negative")
+
     for i in range(1, 11):
         print(i)
         generate_test_files(INPUT_FILE_NAME_TEST + str(i) + ".csv", str(i))

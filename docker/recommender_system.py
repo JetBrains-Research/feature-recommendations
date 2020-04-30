@@ -1,18 +1,19 @@
 import logging
-import time
 import os
 import pickle
 import random
+import time
 
 import reader
 from constants import Method, METHODS_CNT, METHOD_TO_FILE_NAME
-from recommenders.recommender_top_event import RecommenderTopEvent
-from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_als import AlternatingLeastSquares
 from recommenders.recommender_bpr import BayesianPersonalizedRanking
-from recommenders.recommender_random import RecommenderRandom
-from recommenders.recommender_widely_used import RecommenderWidelyUsed
 from recommenders.recommender_codis import RecommenderCoDis
+from recommenders.recommender_random import RecommenderRandom
+from recommenders.recommender_top_event import RecommenderTopEvent
+from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
+from recommenders.recommender_widely_used import RecommenderWidelyUsed
+from recommenders.recommender_weights import RecommenderWeights
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -31,8 +32,8 @@ METHOD_TO_CLASS = {
     Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
     Method.WIDE_3: RecommenderWidelyUsed,
     Method.CODIS_3: RecommenderCoDis,
-    Method.WEIGHTS: RecommenderRandom,  # Replace when weights are ready
-    Method.WEIGHTS_2: RecommenderRandom  # Replace when weights are ready
+    Method.WEIGHTS: RecommenderWeights,  # Replace when weights are ready
+    Method.WEIGHTS_2: RecommenderWeights  # Replace when weights are ready
 }
 
 is_trained = True

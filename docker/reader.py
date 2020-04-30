@@ -2,6 +2,7 @@ import csv
 from tqdm import tqdm
 import json
 import logging
+import os
 
 from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS, TIPS_GROUP,\
     TEST_FILE_NAMES, TEST_LABELS_DIR, TEST_EVENTS_DIR
@@ -236,6 +237,10 @@ def read_test_pairs():
     for file_name in tqdm(TEST_FILE_NAMES):
         if not (file_name[-5:] == '.json'):
             continue
+
+        if not os.path.isfile(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv"):
+            continue
+
         content = _read_user_events(file_name)
         _, user_events, tips = read_request_json(content)
 
@@ -244,6 +249,9 @@ def read_test_pairs():
     user_to_done_tips = {}
     for file_name in tqdm(TEST_FILE_NAMES):
         if not (file_name[-5:] == '.json'):
+            continue
+
+        if not os.path.isfile(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv"):
             continue
 
         user_to_done_tips[file_name[:-5]] = []

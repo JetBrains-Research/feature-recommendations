@@ -35,6 +35,9 @@ def _build_recommendations():
         if not (file_name[-5:] == '.json'):
             continue
 
+        if not os.path.isfile(TEST_LABELS_DIR + "_positive/" + file_name[:-5] + ".csv"):
+            continue
+
         json_events = _read_user_events(file_name)
         for i in range(METHODS_CNT):
             json_events["bucket"] = i
@@ -44,20 +47,30 @@ def _build_recommendations():
     return user_to_recommendation
 
 
-def _build_done_tips():
+def _build_shown_tips():
     user_to_done = {}
+    user_to_not_done = {}
 
     for file_name in tqdm(FILE_NAMES):
         if not (file_name[-5:] == '.json'):
             continue
 
-        user_to_done[file_name[:-5]] = []
+        if os.path.isfile(TEST_LABELS_DIR + "_positive/" + file_name[:-5] + ".csv"):
+            user_to_done[file_name[:-5]] = []
+            for row in open(TEST_LABELS_DIR + "_positive/" + file_name[:-5] + ".csv", 'r'):
+                tip = row[:-1]
+                user_to_done[file_name[:-5]].append(tip)
+        else:
+            pass
+            if os.path.isfile(TEST_LABELS_DIR + "_negative/" + file_name[:-5] + ".csv"):
+                user_to_not_done[file_name[:-5]] = []
+                for row in open(TEST_LABELS_DIR + "_negative/" + file_name[:-5] + ".csv", 'r'):
+                    tip = row[:-1]
+                    user_to_not_done[file_name[:-5]].append(tip)
+            else:
+                print('Unknown user: ' + file_name[:-5])
 
-        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
-            tip = row[:-1]
-            user_to_done[file_name[:-5]].append(tip)
-
-    return user_to_done
+    return user_to_done, user_to_not_done
 
 
 def _evaluate_recommendations(user_to_done, user_to_recommendation):
@@ -83,10 +96,13 @@ def _evaluate_recommendations(user_to_done, user_to_recommendation):
 
 def run_test():
     user_to_recommendation = _build_recommendations()
-    user_to_done = _build_done_tips()
-    print(user_to_recommendation[0]['1112191be9fc10c-e687-4acf-8cbe-96901cd2cc22_1'])
+    user_to_done, user_to_not_done = _build_shown_tips()
+
     map_5, map_10, ndcg_5, ndcg_10, mrr_5, mrr_10, accuracy =\
         _evaluate_recommendations(user_to_done, user_to_recommendation)
+
+    #map_5_not_done, map_10_not_done, ndcg_5_not_done, ndcg_10_not_done, mrr_5_not_done, mrr_10_not_done, accuracy_not_done = \
+    #    _evaluate_recommendations(user_to_not_done, user_to_recommendation)
 
     for i in range(METHODS_CNT):
         print(f"{Method(i).name}: map@5 = {map_5[Method(i).name]}")
@@ -96,6 +112,15 @@ def run_test():
         print(f"{Method(i).name}: MRR@5 = {mrr_5[Method(i).name]}")
         print(f"{Method(i).name}: MRR@10 = {mrr_10[Method(i).name]}")
         print(f"{Method(i).name}: accuracy of first = {accuracy[Method(i).name]}")
+
+   # for i in range(METHODS_CNT):
+   #     print(f"{Method(i).name}: map@5 not done = {map_5_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: map@10 not done = {map_10_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: nDCG@5 not done = {ndcg_5_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: nDCG@10 not done = {ndcg_10_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: MRR@5 not done = {mrr_5_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: MRR@10 not done = {mrr_10_not_done[Method(i).name]}")
+   #     print(f"{Method(i).name}: accuracy of first not done = {accuracy_not_done[Method(i).name]}")
 
     #for file_name in tqdm(FILE_NAMES):
     #    device_id = file_name[:-5]

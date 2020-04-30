@@ -2,7 +2,7 @@ import logging
 import os
 import pickle
 import operator
-from scipy.optimize import shgo
+from scipy.optimize import basinhopping, brute, differential_evolution, shgo, dual_annealing
 import numpy as np
 from tqdm import tqdm
 
@@ -32,7 +32,27 @@ class RecommenderWeights(Recommender):
 
     def _train(self):
         self.weights = shgo(self._loss, bounds=[(0, 1), (0, 1), (0, 1), (0, 1)])['x']
-        logging.info("RecommenderWeights:train done, weights = " + str(self.weights))
+        logging.info("RecommenderWeights: shgo train done, weights = " + str(self.weights))
+
+        self.weights = np.array([1., 1., 1., 1.])
+
+        self.weights = brute(self._loss, ranges=[(0, 1), (0, 1), (0, 1), (0, 1)])[0]
+        logging.info("RecommenderWeights: brute train done, weights = " + str(self.weights))
+
+        self.weights = np.array([1., 1., 1., 1.])
+
+        self.weights = basinhopping(self._loss, np.array([1., 1., 1., 1.]), niter=1).x
+        logging.info("RecommenderWeights: basinhopping train done, weights = " + str(self.weights))
+
+        self.weights = np.array([1., 1., 1., 1.])
+
+        self.weights = differential_evolution(self._loss, bounds=[(0, 1), (0, 1), (0, 1), (0, 1)])['x']
+        logging.info("RecommenderWeights: differential_evolution train done, weights = " + str(self.weights))
+
+        self.weights = np.array([1., 1., 1., 1.])
+
+        self.weights = dual_annealing(self._loss, bounds=[(0, 1), (0, 1), (0, 1), (0, 1)])['x']
+        logging.info("RecommenderWeights: dual_annealing train done, weights = " + str(self.weights))
 
     def __init__(self, train_devices, event_types, train_events, is_logging=True):
         if is_logging:
@@ -40,7 +60,7 @@ class RecommenderWeights(Recommender):
         super(RecommenderWeights, self).__init__(None, None, None, is_logging)
         self.user_to_events_tips, self.user_to_done_tips = read_test_pairs()
         algorithms_classes = [RecommenderTopEvent, BayesianPersonalizedRanking, RecommenderWidelyUsed, RecommenderCoDis]
-        algorithms_ids = [Method.TOP, Method.MATRIX, Method.WIDE, Method.CODIS]
+        algorithms_ids = [Method.TOP, Method.MATRIX_BPR, Method.WIDE, Method.CODIS]
         self.weights = np.array([1., 1., 1., 1.])
         self.algorithms = []
         for i in range(len(algorithms_classes)):

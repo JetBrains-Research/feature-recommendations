@@ -65,5 +65,5 @@ METHOD_TO_FILE_NAME = {
 }
 
 TEST_EVENTS_DIR = PATH + "/test/test_events"
-TEST_LABELS_DIR = PATH + "/test/test_labels"
+TEST_LABELS_DIR = PATH + "/test/test_labels_positive"
 TEST_FILE_NAMES = os.listdir(TEST_EVENTS_DIR)

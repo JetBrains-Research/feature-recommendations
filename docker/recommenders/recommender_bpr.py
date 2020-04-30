@@ -42,7 +42,8 @@ class BayesianPersonalizedRanking(BaseMatrixRecommender):
         return best_index
 
     def recommend(self, test_device_events, tips):
-        logging.info("BayesianPersonalizedRanking: matrix data computed, recommend started")
+        if self.is_logging:
+            logging.info("BayesianPersonalizedRanking: matrix data computed, recommend started")
 
         test_device_indices = self._get_indices_by_events(test_device_events)
 
@@ -51,6 +52,7 @@ class BayesianPersonalizedRanking(BaseMatrixRecommender):
         user_items = self.matrix.transpose().tocsr()
 
         recommendation = self.model.recommend(closest_device_index, user_items, N=len(self.event_types))
-        logging.info("BayesianPersonalizedRanking: model recommend")
+        if self.is_logging:
+            logging.info("BayesianPersonalizedRanking: model recommend")
 
         return self._generate_recommendation_list(recommendation, test_device_events, tips)
