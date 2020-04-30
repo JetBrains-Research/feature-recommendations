@@ -32,8 +32,8 @@ METHOD_TO_CLASS = {
     Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
     Method.WIDE_3: RecommenderWidelyUsed,
     Method.CODIS_3: RecommenderCoDis,
-    Method.WEIGHTS: RecommenderWeights,  # Replace when weights are ready
-    Method.WEIGHTS_2: RecommenderWeights  # Replace when weights are ready
+    Method.WEIGHTS: RecommenderRandom,  # Replace when weights are ready
+    Method.WEIGHTS_2: RecommenderRandom  # Replace when weights are ready
 }
 
 is_trained = True
