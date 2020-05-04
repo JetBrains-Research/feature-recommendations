@@ -13,7 +13,7 @@ from recommenders.recommender_random import RecommenderRandom
 from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_widely_used import RecommenderWidelyUsed
-from recommenders.recommender_weights import RecommenderWeights
+from recommenders.recommender_weights_lin_reg import RecommenderWeightsLinear
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -24,7 +24,7 @@ METHOD_TO_CLASS = {
     Method.WIDE: RecommenderWidelyUsed,
     Method.CODIS: RecommenderCoDis,
     Method.RANDOM: RecommenderRandom,
-    Method.TOP_2: RecommenderTopEvent,
+    Method.WEIGHTS_LIN_REG: RecommenderWeightsLinear,
     Method.PROB_2: RecommenderTopEventWithProbability,
     Method.MATRIX_BPR: BayesianPersonalizedRanking,
     Method.WIDE_2: RecommenderWidelyUsed,
@@ -32,13 +32,14 @@ METHOD_TO_CLASS = {
     Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
     Method.WIDE_3: RecommenderWidelyUsed,
     Method.CODIS_3: RecommenderCoDis,
-    Method.WEIGHTS: RecommenderRandom,  # Replace when weights are ready
-    Method.WEIGHTS_2: RecommenderRandom  # Replace when weights are ready
+    Method.WEIGHTS_LIN_REG_2: RecommenderWeightsLinear,
+    Method.WEIGHTS_LIN_REG_3: RecommenderWeightsLinear
 }
 
 is_trained = True
 for i in range(METHODS_CNT):
-    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS and Method(i) != Method.WEIGHTS_2 \
+    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.WEIGHTS_LIN_REG_3 \
+            and Method(i) != Method.WEIGHTS_LIN_REG\
             and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
         is_trained = False
         break

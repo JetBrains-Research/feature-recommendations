@@ -93,7 +93,7 @@ class RecommenderCoDis(Recommender):
         cf_matrix, df_matrix = _build_cf_df(event_types, train_events)
         self.cp_matrix, self.dp_matrix = _build_cp_dp(event_types, cf_matrix, df_matrix)
 
-    def recommend(self, test_device_events, tips):
+    def recommend_with_scores(self, test_device_events, tips):
         last_session_events = _get_last_session(test_device_events)
         event_to_score = {}
         for (group_id, event_id) in self.event_types:
@@ -106,15 +106,16 @@ class RecommenderCoDis(Recommender):
 
         sorted_by_score_events = sorted(event_to_score.items(), key=operator.itemgetter(1), reverse=True)
 
-        tips_to_recommend = []
+        tips_to_recommend = {}
 
         for top_event in sorted_by_score_events:
-            top_event = top_event[0]
-            if (top_event not in test_device_events.keys()) \
-                    and _is_intersection(tips, event_to_tips(top_event[0], top_event[1])) > 0:
-                for tip in event_to_tips(top_event[0], top_event[1]):
+            event = top_event[0]
+            score = top_event[1]
+            if (event not in test_device_events.keys()) \
+                    and _is_intersection(tips, event_to_tips(event[0], event[1])) > 0:
+                for tip in event_to_tips(event[0], event[1]):
                     if tip in tips:
-                        tips_to_recommend.append(tip)
+                        tips_to_recommend[tip] = score
 
         if self.is_logging:
             logging.info("RecommenderCo+Dis:recommend: recommendation made.")

@@ -51,20 +51,21 @@ class RecommenderTopEvent(Recommender):
         super(RecommenderTopEvent, self).__init__(train_devices, event_types, train_events, is_logging)
         self.top_events = _get_top_events(self.train_events, self.is_logging)
     
-    def recommend(self, test_device_events, tips):
+    def recommend_with_scores(self, test_device_events, tips):
         if self.is_logging:
             logging.info("RecommenderTopEvent:recommend: recommendation started.")
         test_device_events = self._filter_old_test_device_events(test_device_events)
 
-        tips_to_recommend = []
+        tips_to_recommend = {}
 
         for top_event in self.top_events:
-            top_event = top_event[0]
-            if (top_event not in test_device_events.keys())\
-                    and _is_intersection(tips, event_to_tips(top_event[0], top_event[1])) > 0:
-                for tip in event_to_tips(top_event[0], top_event[1]):
+            event = top_event[0]
+            score = top_event[1]
+            if (event not in test_device_events.keys())\
+                    and _is_intersection(tips, event_to_tips(event[0], event[1])) > 0:
+                for tip in event_to_tips(event[0], event[1]):
                     if tip in tips:
-                        tips_to_recommend.append(tip)
+                        tips_to_recommend[tip] = score
         if self.is_logging:
             logging.info("RecommenderTopEvent:recommend: recommendation made.")
         return tips_to_recommend
