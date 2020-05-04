@@ -67,12 +67,15 @@ METHOD_TO_FILE_NAME = {
 }
 
 LABELS_DATA_SOURCE = PATH + "/resources/labeled_data_source"
-LABELS_DATA_SOURCE_FILES = os.listdir(LABELS_DATA_SOURCE)
+if os.path.isdir(LABELS_DATA_SOURCE):
+    LABELS_DATA_SOURCE_FILES = os.listdir(LABELS_DATA_SOURCE)
 
 TEST_EVENTS_DIR = PATH + "/resources/test_events"
-TEST_EVENTS_DIR_FILES = os.listdir(TEST_EVENTS_DIR)
+if os.path.isdir(TEST_EVENTS_DIR):
+    TEST_EVENTS_DIR_FILES = os.listdir(TEST_EVENTS_DIR)
 TRAIN_EVENTS_DIR = PATH + "/resources/train_events"
-TRAIN_EVENTS_DIR_FILES = os.listdir(TRAIN_EVENTS_DIR)
+if os.path.isdir(TRAIN_EVENTS_DIR):
+    TRAIN_EVENTS_DIR_FILES = os.listdir(TRAIN_EVENTS_DIR)
 TEST_LABELS_POSITIVE_DIR = PATH + "/resources/test_labels_positive"
 TRAIN_LABELS_POSITIVE_DIR = PATH + "/resources/train_labels_positive"
 TEST_LABELS_NEGATIVE_DIR = PATH + "/resources/test_labels_negative"
