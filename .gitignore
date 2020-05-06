@@ -133,5 +133,8 @@ dmypy.json
 **/log_sample_with_answers_full.csv
 **/log_sample_small.csv
 **/models
-!**/models/random.pickle
-*/new_*
+**/resources/labeled_data_source
+**/resources/train*
+**/resources/test_*
+**/log_sample_for_evaluation.csv
+**/resources/new_*

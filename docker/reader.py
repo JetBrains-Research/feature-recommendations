@@ -3,8 +3,7 @@ from tqdm import tqdm
 import json
 import logging
 
-from constants import ACTION_INVOKED_GROUP, TIP_TO_EVENT_FILE_NAME, INPUT_FILE_NAME, TRAIN_TIME_MILLIS, TIPS_GROUP,\
-    TEST_FILE_NAMES, TEST_LABELS_DIR, TEST_EVENTS_DIR
+from constants import *
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -67,8 +66,7 @@ def tip_to_event(tip):
     return []
 
 
-def event_to_tips(event):
-    group_id, event_id = event
+def event_to_tips(group_id, event_id):
     if group_id != ACTION_INVOKED_GROUP:
         return []
 
@@ -93,30 +91,49 @@ def _check_group_event_id(event):
                                 'ESLintLanguageService')
 
 
-def _extract_from_csv_row(event_data):
-    ide = event_data[19]
-    count = event_data[12].split('.')[0]
+def _extract_from_csv_row(event_data, is_eval):
+    if is_eval:
+        ide = event_data[13]
+        count = event_data[11].split('.')[0]
+        group_id = event_data[4]
+        event_id = event_data[9]
+
+        timestamp = int(event_data[2])
+        device_id = event_data[6]
+        bucket = event_data[8]
+
+    else:
+        ide = event_data[19]
+        count = event_data[12].split('.')[0]
+        group_id = event_data[5]
+        event_id = event_data[10]
+
+        timestamp = int(event_data[3])
+        device_id = event_data[7]
+        bucket = event_data[9]
+
     if count:
         count = int(count)
     else:
         count = 0
 
-    group_id = event_data[5]
-    event_id = event_data[10]
-
     if group_id == "actions" and event_id == "action.invoked":
-        event_info = json.loads(event_data[11])
+        if is_eval:
+            event_info = json.loads(event_data[10])
+        else:
+            event_info = json.loads(event_data[11])
         group_id = ACTION_INVOKED_GROUP
         event_id = event_info["action_id"]
 
     if group_id == "ui.tips" and event_id == "tip.shown":
-        event_info = json.loads(event_data[11])
+        if is_eval:
+            event_info = json.loads(event_data[10])
+        else:
+            event_info = json.loads(event_data[11])
         group_id = TIPS_GROUP
-        event_id = event_info["filename"]
-
-    timestamp = int(event_data[3])
-    device_id = event_data[7]
-    bucket = event_data[9]
+        event_id = event_info["filename"] + ";"
+        if "algorithm" in event_info.keys():
+            event_id = event_id + event_info["algorithm"]
 
     event = EventFull(group_id=group_id, event_id=event_id, device_id=device_id,
                       count=count, timestamp=timestamp, bucket=bucket, ide=ide)
@@ -124,7 +141,7 @@ def _extract_from_csv_row(event_data):
     return event
 
 
-def read_events_raw(file_name):
+def read_events_raw(file_name, is_eval=False):
     events = []
     event_types = {}
     devices = {}
@@ -135,10 +152,7 @@ def read_events_raw(file_name):
                 is_first = False
                 continue
 
-            if len(event_data) < 20:
-                continue
-
-            event = _extract_from_csv_row(event_data)
+            event = _extract_from_csv_row(event_data, is_eval)
             if event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP:
                 continue
 
@@ -215,41 +229,57 @@ def read_events_from_file():
     return train_events, events_types, train_device_ids
 
 
-def ide_to_tips():
+def ide_to_tips(file_name):
     ide_to_tips = {}
-    events, events_types, train_device_ids = read_events_raw(INPUT_FILE_NAME)
+    events, events_types, train_device_ids = read_events_raw(file_name)
     for event in events:
         if event.group_id == TIPS_GROUP:
             if event.ide not in ide_to_tips.keys():
                 ide_to_tips[event.ide] = {}
-            ide_to_tips[event.ide][event.event_id] = True
+            tip = event.event_id.split(";")[0]
+            ide_to_tips[event.ide][tip] = True
     return ide_to_tips
 
 
 def _read_user_events(file):
-    with open(TEST_EVENTS_DIR + "/" + file, 'r') as fin:
+    with open(TRAIN_EVENTS_DIR + "/" + file, 'r') as fin:
         data = json.load(fin)
         return data
 
 
 def read_test_pairs():
-    user_to_events_tips = {}
-    for file_name in tqdm(TEST_FILE_NAMES):
+    recommend_input_done = {}
+    recommend_input_not_done = {}
+    for file_name in tqdm(TRAIN_EVENTS_DIR_FILES):
         if not (file_name[-5:] == '.json'):
             continue
+
         content = _read_user_events(file_name)
         _, user_events, tips = read_request_json(content)
 
-        user_to_events_tips[file_name[:-5]] = (user_events, tips)
+        if os.path.isfile(TRAIN_LABELS_POSITIVE_DIR + "/" + file_name[:-5] + ".csv"):
+            recommend_input_done[file_name[:-5]] = (user_events, tips)
+
+        if os.path.isfile(TRAIN_LABELS_NEGATIVE_DIR + "/" + file_name[:-5] + ".csv"):
+            recommend_input_not_done[file_name[:-5]] = (user_events, tips)
 
     user_to_done_tips = {}
-    for file_name in tqdm(TEST_FILE_NAMES):
+    user_to_not_done_tips = {}
+    for file_name in tqdm(TRAIN_EVENTS_DIR_FILES):
         if not (file_name[-5:] == '.json'):
             continue
 
-        user_to_done_tips[file_name[:-5]] = []
-        for row in open(TEST_LABELS_DIR + "/" + file_name[:-5] + ".csv", 'r'):
-            tip = row[:-1]
-            user_to_done_tips[file_name[:-5]].append(tip)
+        if os.path.isfile(TRAIN_LABELS_POSITIVE_DIR + "/" + file_name[:-5] + ".csv"):
+            user_to_done_tips[file_name[:-5]] = []
+            for row in open(TRAIN_LABELS_POSITIVE_DIR + "/" + file_name[:-5] + ".csv", 'r'):
+                tip = row[:-1]
+                user_to_done_tips[file_name[:-5]].append(tip)
 
-    return user_to_events_tips, user_to_done_tips
+        if os.path.isfile(TRAIN_LABELS_NEGATIVE_DIR + "/" + file_name[:-5] + ".csv"):
+            user_to_not_done_tips[file_name[:-5]] = []
+            for row in open(TRAIN_LABELS_NEGATIVE_DIR + "/" + file_name[:-5] + ".csv", 'r'):
+                tip = row[:-1]
+                user_to_not_done_tips[file_name[:-5]].append(tip)
+
+    print(recommend_input_done)
+    return recommend_input_done, recommend_input_not_done, user_to_done_tips, user_to_not_done_tips

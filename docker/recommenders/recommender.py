@@ -33,4 +33,25 @@ class Recommender:
         return filtered_test_device_events
 
     def recommend(self, test_device_events, tips):
+        recommendation_with_scores = self.recommend_with_scores(test_device_events, tips)
+        recommendations = []
+        for tip in recommendation_with_scores.keys():
+            recommendations.append(tip)
+        return recommendations
+
+    @staticmethod
+    def normalize(recommendations_with_score):
+        max_score = 0
+        for tip in recommendations_with_score.keys():
+            max_score = max(max_score, recommendations_with_score[tip])
+        if max_score == 0:
+            return recommendations_with_score
+
+        recommendations_with_score_normalized = {}
+        for tip in recommendations_with_score.keys():
+            recommendations_with_score_normalized[tip] = recommendations_with_score[tip] / max_score
+
+        return recommendations_with_score_normalized
+
+    def recommend_with_scores(self, test_device_events, tips):
         pass

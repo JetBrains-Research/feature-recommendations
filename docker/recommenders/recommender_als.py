@@ -30,7 +30,7 @@ class AlternatingLeastSquares(BaseMatrixRecommender):
 
         return matrix.transpose().tocsr()
 
-    def recommend(self, test_device_events, tips):
+    def recommend_with_scores(self, test_device_events, tips):
         if self.is_logging:
             logging.info("AlternatingLeastSquares: matrix data computed, recommend started")
 
