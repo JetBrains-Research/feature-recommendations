@@ -36,8 +36,12 @@ def do_recommendation():
     recommendation = recommender_system.recommend(user_events, tips, method)
     logging.info("Recommendation made: " + str(recommendation))
 
+    name = method.name
+    if name.endswith("_2") or name.endswith("_3"):
+        name = name[:-2]
+
     data = {"showingOrder": recommendation,
-            "usedAlgorithm": method.name,
+            "usedAlgorithm": name,
             "version": "0.1"}
 
     return data

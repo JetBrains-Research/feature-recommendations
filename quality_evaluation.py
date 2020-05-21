@@ -1,7 +1,7 @@
 from reader import read_events_raw, event_to_tips
-from constants import TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS
+from constants import TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS, FORGET_TIME_DAYS
 
-INPUT_FILE_NAME = "./log_sample_for_evaluation.csv"
+INPUT_FILE_NAME = "./log_sample_with_answers_full.csv"
 
 
 class Evaluation:
@@ -21,8 +21,10 @@ class Evaluation:
         if event.device_id in self.device_to_done_actions.keys():
             for done_action in self.device_to_done_actions[event.device_id].keys():
                 event_id, _ = done_action
+                action_timestamp, _ = self.device_to_done_actions[event.device_id][done_action]
 
-                if tip_name in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event_id):
+                if tip_name in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event_id) \
+                        and event.timestamp - action_timestamp < FORGET_TIME_DAYS * 24 * 60 * 60 * 1000:
                     is_tip_done_before = True
                     break
 
@@ -66,7 +68,7 @@ class Evaluation:
             accuracy[algo] = self.good_tips_cnt[algo] * 1. / self.all_tips_cnt[algo]
             device_accuracy[algo] = len(self.devices_good[algo].keys()) * 1. / len(self.devices_all[algo].keys())
 
-        return accuracy, device_accuracy
+        return accuracy, device_accuracy, self.good_tips_cnt, self.all_tips_cnt
 
     def __init__(self):
         self.device_to_done_actions = {}
@@ -78,10 +80,12 @@ class Evaluation:
 
 
 if __name__ == "__main__":
-    events, event_types, devices = read_events_raw(INPUT_FILE_NAME, is_eval=True)
+    events, event_types, devices = read_events_raw(INPUT_FILE_NAME)
     events.sort(key=lambda x: x.timestamp)
-    accuracy, users_accuracy = Evaluation().evaluate(events)
+    accuracy, users_accuracy, good_tips_cnt, all_tips_cnt = Evaluation().evaluate(events)
     for algo in accuracy.keys():
         print(f"{algo}: percent of followed tips: {accuracy[algo] * 100}")
+        print(f"{algo}: good tips count: {good_tips_cnt[algo]}")
+        print(f"{algo}: all tips count: {all_tips_cnt[algo]}")
         print(f"{algo}: percent of users who followed the tips is: {users_accuracy[algo] * 100}")
 

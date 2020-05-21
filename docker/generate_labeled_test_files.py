@@ -85,11 +85,11 @@ class LabeledTestFileGenerator:
         self.process_not_done_tips()
 
     def __init__(self, file_name, file_id):
-        self.events, _, _ = reader.read_events_raw(file_name)
+        self.events, _, _ = reader.read_events_raw(file_name, is_eval=True)
 
         self.events.sort(key=lambda x: x.timestamp)
 
-        self.ide_tips = ide_to_tips(file_name)
+        self.ide_tips = ide_to_tips(file_name, is_eval=True)
         self.device_to_done_actions = {}
         self.device_to_tips = {}
         self.tips_done = {}
@@ -117,8 +117,8 @@ def generate_dirs():
 def split_train_test():
     positive_files = os.listdir(TRAIN_LABELS_POSITIVE_DIR)
     negative_files = os.listdir(TRAIN_LABELS_NEGATIVE_DIR)
-    positive_test_files = np.random.choice(positive_files, int(len(positive_files) * 0.1), replace=False)
-    negative_test_files = np.random.choice(negative_files, int(len(negative_files) * 0.1), replace=False)
+    positive_test_files = np.random.choice(positive_files, int(len(positive_files) * 0.3), replace=False)
+    negative_test_files = np.random.choice(negative_files, int(len(negative_files) * 0.3), replace=False)
 
     for file in positive_test_files:
         os.rename(TRAIN_LABELS_POSITIVE_DIR + "/" + file, TEST_LABELS_POSITIVE_DIR + "/" + file)
