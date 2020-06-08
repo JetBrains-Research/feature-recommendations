@@ -5,6 +5,14 @@ Integrated developer environments provide their users with many different featur
 ## Usage
 For algorithms' training we used IntelliJ IDEA users' logs. These logs are stored as a csv file. When reading the logs the relevant fields are parsed and not relevant are ignored. Please request the input file example if you need it.
 
+The format example can be found in the table below. In this project not all the fields are used. We need only fields with names ```group_id```, ```event_id```, ```device_id```, ```event_data```, ```event_count```, ```time_epoch```, ```bucket``` and ```product_code```.
+
+| country_code | internal | recorder_version | time_epoch | product_build| group_id | group_version | device_id | session_id | bucket | event_id | event_data | event_count | state| project_id| date_year| date_month| date_day | recorder_code | product_code | product_code | product_build |
+| :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- |
+| CN | False | 31 | 1577836800 | 193.5662.61 | ui.tips | 3 | 67890 | 11111 | 79 | dialog.shown |{""created"":1,""type"":""automatically""} | 1.0 | False | None | 2020 | 01 | 01 | FUS | PC | PC | 193.5662.61
+
+
+
 ### Running the service
 To run the implemented service the following steps should be done:
 1. Put the input file with logs in ```docker/resources```
