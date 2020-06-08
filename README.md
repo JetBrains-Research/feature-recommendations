@@ -11,7 +11,7 @@ The format example can be found in the table below. In this project not all the 
 | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- | :------------- |
 | CN | False | 31 | 1577836800 | 193.5662.61 | ui.tips | 3 | 67890 | 11111 | 79 | dialog.shown |{""created"":1,""type"":""automatically""} | 1.0 | False | None | 2020 | 01 | 01 | FUS | PC | PC | 193.5662.61
 
-
+One more example can be found in ```tst.csv``` file.
 
 ### Running the service
 To run the implemented service the following steps should be done:
