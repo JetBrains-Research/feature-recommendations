@@ -80,7 +80,7 @@ Steps to run the online testing:
 ### Some extra information from logs
 
 In root you can find three more files:
-1. ```actions_statistics.py``` can be used to find out if the pupular events in different IDEs are the same
+1. ```actions_statistics.py``` can be used to find out if the popular events in different IDEs are the same
 2. ```activity_period.ipynb``` is computing the average activity period, where activity period is a time period when user did some actions with an intervals less than 30 minutes between the actions
 3. ```get_probability_to_remember.ipynb	``` is computing the probability for a user to remember the action if the used have not done the action for N days
 
