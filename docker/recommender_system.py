@@ -17,6 +17,7 @@ from recommenders.recommender_weights_lin_reg import RecommenderWeightsLinear
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
+
 METHOD_TO_CLASS = {
     Method.TOP: RecommenderTopEvent,
     Method.PROB: RecommenderTopEventWithProbability,
@@ -24,7 +25,7 @@ METHOD_TO_CLASS = {
     Method.WIDE: RecommenderWidelyUsed,
     Method.CODIS: RecommenderCoDis,
     Method.RANDOM: RecommenderRandom,
-    Method.WEIGHTS_LIN_REG: RecommenderWeightsLinear,
+    Method.WEIGHTS_LIN_REG: RecommenderRandom,
     Method.PROB_2: RecommenderTopEventWithProbability,
     Method.MATRIX_BPR: BayesianPersonalizedRanking,
     Method.WIDE_2: RecommenderWidelyUsed,
@@ -32,8 +33,8 @@ METHOD_TO_CLASS = {
     Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
     Method.WIDE_3: RecommenderWidelyUsed,
     Method.CODIS_3: RecommenderCoDis,
-    Method.WEIGHTS_LIN_REG_2: RecommenderWeightsLinear,
-    Method.WEIGHTS_LIN_REG_3: RecommenderWeightsLinear
+    Method.WEIGHTS_LIN_REG_2: RecommenderRandom,
+    Method.WEIGHTS_LIN_REG_3: RecommenderRandom
 }
 
 is_trained = True
@@ -76,6 +77,16 @@ for i in range(METHODS_CNT):
             pickle.dump(algorithms[Method(i)], f)
             logging.info("Algorithm " + str(Method(i).name) + " saved.")
 
+algo_to_average_time = {}
+algo_to_request_cnt = {}
+algo_to_min_time = {}
+algo_to_max_time = {}
+for i in range(METHODS_CNT):
+    algo_to_average_time[Method(i)] = 0
+    algo_to_request_cnt[Method(i)] = 0
+    algo_to_max_time[Method(i)] = 0
+    algo_to_min_time[Method(i)] = 100
+
 
 def recommend(user_events, tips, method):
     start = time.time()
@@ -96,6 +107,13 @@ def recommend(user_events, tips, method):
     random.shuffle(recommendation_unsorted)
     recommendation.extend(recommendation_unsorted)
     end = time.time()
+    algo_to_average_time[method] += end - start
+    algo_to_request_cnt[method] += 1
+    algo_to_max_time[method] = max(end - start, algo_to_max_time[method])
+    algo_to_min_time[method] = min(end - start, algo_to_min_time[method])
     logging.info("Recommendation process done, TIME: " + str(end - start))
+    logging.info("Average time: " + str(algo_to_average_time[method] / algo_to_request_cnt[method]))
+    logging.info("Max time: " + str(algo_to_max_time[method]))
+    logging.info("Min time: " + str(algo_to_min_time[method]))
 
     return recommendation

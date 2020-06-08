@@ -103,6 +103,8 @@ def _extract_from_csv_row(event_data, is_eval):
         bucket = event_data[8]
 
     else:
+        if len(event_data) < 20:
+            return None
         ide = event_data[19]
         count = event_data[12].split('.')[0]
         group_id = event_data[5]
@@ -153,7 +155,7 @@ def read_events_raw(file_name, is_eval=False):
                 continue
 
             event = _extract_from_csv_row(event_data, is_eval)
-            if event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP:
+            if (not event) or event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP:
                 continue
 
             if event.count and _check_group_event_id(event):
@@ -170,12 +172,11 @@ def get_device_to_max_timestamp(events):
     device_to_max_timestamp = {}
 
     for event in tqdm(events):
-        device_id, _, _, timestamp, _, _, _ = event
 
-        if device_id not in device_to_max_timestamp.keys():
-            device_to_max_timestamp[device_id] = timestamp
+        if event.device_id not in device_to_max_timestamp.keys():
+            device_to_max_timestamp[event.device_id] = event.timestamp
         else:
-            device_to_max_timestamp[device_id] = max(device_to_max_timestamp[device_id], timestamp)
+            device_to_max_timestamp[event.device_id] = max(device_to_max_timestamp[event.device_id], event.timestamp)
 
     return device_to_max_timestamp
 
@@ -184,12 +185,11 @@ def get_device_to_min_timestamp(events):
     device_to_min_timestamp = {}
 
     for event in tqdm(events):
-        device_id, _, _, timestamp, _, _, _ = event
 
-        if device_id not in device_to_min_timestamp.keys():
-            device_to_min_timestamp[device_id] = timestamp
+        if event.device_id not in device_to_min_timestamp.keys():
+            device_to_min_timestamp[event.device_id] = event.timestamp
         else:
-            device_to_min_timestamp[device_id] = min(device_to_min_timestamp[device_id], timestamp)
+            device_to_min_timestamp[event.device_id] = min(device_to_min_timestamp[event.device_id], event.timestamp)
 
     return device_to_min_timestamp
 
@@ -229,9 +229,9 @@ def read_events_from_file():
     return train_events, events_types, train_device_ids
 
 
-def ide_to_tips(file_name):
+def ide_to_tips(file_name, is_eval=False):
     ide_to_tips = {}
-    events, events_types, train_device_ids = read_events_raw(file_name)
+    events, events_types, train_device_ids = read_events_raw(file_name, is_eval)
     for event in events:
         if event.group_id == TIPS_GROUP:
             if event.ide not in ide_to_tips.keys():
@@ -281,5 +281,4 @@ def read_test_pairs():
                 tip = row[:-1]
                 user_to_not_done_tips[file_name[:-5]].append(tip)
 
-    print(recommend_input_done)
     return recommend_input_done, recommend_input_not_done, user_to_done_tips, user_to_not_done_tips

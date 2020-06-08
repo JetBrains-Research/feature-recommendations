@@ -6,7 +6,7 @@ from recommenders.recommender import Recommender
 from reader import read_test_pairs
 from constants import METHOD_TO_FILE_NAME, Method
 from recommenders.recommender_top_event import RecommenderTopEvent
-from recommenders.recommender_bpr import BayesianPersonalizedRanking
+from recommenders.recommender_als import AlternatingLeastSquares
 from recommenders.recommender_widely_used import RecommenderWidelyUsed
 from recommenders.recommender_codis import RecommenderCoDis
 
@@ -23,8 +23,8 @@ class RecommenderWeightsBase(Recommender):
         super(RecommenderWeightsBase, self).__init__(None, None, None, is_logging)
         self.recommend_input_done, self.recommend_input_not_done, self.user_to_done_tips, self.user_to_not_done_tips =\
             read_test_pairs()
-        algorithms_classes = [RecommenderTopEvent, BayesianPersonalizedRanking, RecommenderWidelyUsed, RecommenderCoDis]
-        algorithms_ids = [Method.TOP, Method.MATRIX_BPR, Method.WIDE, Method.CODIS]
+        algorithms_classes = [RecommenderTopEvent, AlternatingLeastSquares, RecommenderWidelyUsed, RecommenderCoDis]
+        algorithms_ids = [Method.TOP, Method.MATRIX_ALS, Method.WIDE, Method.CODIS]
         self.algorithms = []
         for i in range(len(algorithms_classes)):
             if os.path.isfile(METHOD_TO_FILE_NAME[algorithms_ids[i]]):
