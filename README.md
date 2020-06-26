@@ -3,7 +3,7 @@
 Integrated developer environments provide their users with many different features, but the developers usually know these features not well enough. To make developers more productive, they should be taught to use these features. IntelliJ IDEA provides a teaching mechanism called Tips of the Day. But this mechanism shows recommendations in random order and does not consider the individual needs of developers. In this work, we researched different recommendation algorithms, which allowed us to choose the best algorithms for improving Tips of the Day in IntelliJ IDEA. The result of this work is a recommender system implemented as an external web service, containing various algorithms, receiving requests from IntelliJ IDEA, and sending a sorted list of recommendations as a response. The service was evaluated on the test data collected from real  users, that allowed to compare the implemented algorithms.
 
 ## Usage
-For algorithms' training we used IntelliJ IDEA users' logs. These logs are stored as a csv file. When reading the logs the relevant fields are parsed and not relevant are ignored. Please request the input file example if you need it.
+For algorithms' training we used IntelliJ IDEA users' logs. These logs are stored as a csv file. When reading the logs the relevant fields are parsed and not relevant are ignored. Please contact [anastasia.miller@jetbrains.com](mailto:anastasia.miller@jetbrains.com) to request the input file example if you need it.
 
 The format example can be found in the table below. In this project not all the fields are used. We need only fields with names ```group_id```, ```event_id```, ```device_id```, ```event_data```, ```event_count```, ```time_epoch```, ```bucket``` and ```product_code```.
 
