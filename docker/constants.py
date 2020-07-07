@@ -80,3 +80,5 @@ TEST_LABELS_POSITIVE_DIR = PATH + "/resources/test_labels_positive"
 TRAIN_LABELS_POSITIVE_DIR = PATH + "/resources/train_labels_positive"
 TEST_LABELS_NEGATIVE_DIR = PATH + "/resources/test_labels_negative"
 TRAIN_LABELS_NEGATIVE_DIR = PATH + "/resources/train_labels_negative"
+
+LEARN_TIME_FILE_NAME = PATH + "/resources/learning_time.csv"

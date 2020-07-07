@@ -39,7 +39,7 @@ class LabeledTestFileGenerator:
                 data["usageInfo"][event_id] = {}
                 data["usageInfo"][event_id]["usageCount"] = count
                 data["usageInfo"][event_id]["lastUsedTimestamp"] = max_timestamp
-        if not is_tip_done_before:
+        if not is_tip_done_before and len(list(self.device_to_done_actions[event.device_id].keys())) > 0:
             with open(TRAIN_EVENTS_DIR + self.generate_file_name(event.device_id, "json", self.tip_id_cur), 'w') as fout:
                 json.dump(data, fout)
 
@@ -62,7 +62,11 @@ class LabeledTestFileGenerator:
         if event.device_id in self.device_to_tips.keys():
             for (tip, tip_timestamp, tip_id) in self.device_to_tips[event.device_id]:
                 if tip in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event.event_id):
-                    if event.timestamp - tip_timestamp < PREDICTED_TIME_MILLIS:
+                    if event.timestamp - tip_timestamp < PREDICTED_TIME_MILLIS \
+                            and \
+                            (event.event_id not in self.command_to_learn_time.keys()
+                             or event.timestamp - self.device_to_first_time[event.device_id]
+                             >= self.command_to_learn_time[event.event_id]):
                         with open(TRAIN_LABELS_POSITIVE_DIR + self.generate_file_name(event.device_id, "csv", tip_id), 'w') as fout:
                             fout.write(tip + "\n")
                         self.tips_done[tip_id] = True
@@ -76,6 +80,8 @@ class LabeledTestFileGenerator:
 
     def generate(self):
         for event in self.events:
+            if event.device_id not in self.device_to_first_time.keys():
+                self.device_to_first_time[event.device_id] = event.timestamp
             if event.group_id == TIPS_GROUP:
                 if event.device_id in self.device_to_done_actions.keys():
                     self.process_tip(event)
@@ -92,9 +98,16 @@ class LabeledTestFileGenerator:
         self.ide_tips = ide_to_tips(file_name, is_eval=True)
         self.device_to_done_actions = {}
         self.device_to_tips = {}
+        self.device_to_first_time = {}
         self.tips_done = {}
         self.tip_id_cur = 0
         self.file_id = file_id
+        self.command_to_learn_time = {}
+
+        with open(LEARN_TIME_FILE_NAME, 'r') as fin:
+            for line in fin:
+                command, time = line.split(",")[0], line.split(",")[1]
+                self.command_to_learn_time[command] = int(time)
 
         self.generate()
 

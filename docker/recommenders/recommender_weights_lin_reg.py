@@ -2,6 +2,7 @@ import logging
 import operator
 from tqdm import tqdm
 from sklearn.linear_model import *
+from sklearn.ensemble import RandomForestClassifier
 
 
 from recommenders.recommender import Recommender
@@ -37,7 +38,7 @@ class RecommenderWeightsLinear(RecommenderWeightsBase):
 
         cnt = 0
         for device_id in tqdm(self.recommend_input_not_done.keys()):
-            if cnt == 300:
+            if cnt == 700:
                 break
             cnt += 1
             test_device_events, tips = self.recommend_input_not_done[device_id]
@@ -61,7 +62,7 @@ class RecommenderWeightsLinear(RecommenderWeightsBase):
     def __init__(self, train_devices, event_types, train_events, is_logging=True):
         if is_logging:
             logging.info("RecommenderWeightsLinear:init: init started.")
-        self.model = BayesianRidge()
+        self.model = RidgeClassifier()
 
         super(RecommenderWeightsLinear, self).__init__(train_devices, event_types, train_events, is_logging)
 
@@ -79,7 +80,7 @@ class RecommenderWeightsLinear(RecommenderWeightsBase):
                     x_value.append(recommendations[i][tip])
                 else:
                     x_value.append(0)
-            tip_to_score[tip] = self.model.predict([x_value])[0]
+            tip_to_score[tip] = self.model.predict_proba([x_value])[0][1]
 
         sorted_tips = sorted(tip_to_score.items(), key=operator.itemgetter(1), reverse=True)
 
