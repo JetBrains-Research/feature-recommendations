@@ -1,5 +1,5 @@
-from reader import read_events_raw, event_to_tips
-from constants import TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS, FORGET_TIME_DAYS
+from reader import read_events_raw, event_to_tips, ide_to_tips
+from constants import TIPS_GROUP, ACTION_INVOKED_GROUP
 import os
 from tqdm import tqdm
 from enum import Enum
@@ -16,14 +16,16 @@ class PreprocessedEvent:
     class Type(Enum):
         TIP = 0
         ACTION = 1
+        TIP_GROUP = 2
 
-    def __init__(self, type, timestamp, device_id, filename, was_done_before=None, action_id=None):
-        self.type = type
+    def __init__(self, type_, timestamp, device_id, filename=None, action_id=None, tip_group_event_id=None, tip_algo_name=None):
+        self.type = type_
         self.timestamp = timestamp
         self.device_id = device_id
         self.filename = filename
-        self.was_done_before = was_done_before
         self.action_id = action_id
+        self.tip_group_event_id = tip_group_event_id
+        self.tip_algo_name = tip_algo_name
 
 
 class PreprocessedLogBuilder:
@@ -31,42 +33,28 @@ class PreprocessedLogBuilder:
         tip_name = event.event_id.split(";")[0]
         algo_name = event.event_id.split(";")[1]
 
-        is_tip_done_before = False
-        for done_action in self.done_actions.keys():
-            event_id, _ = done_action
-            action_timestamp, _ = self.done_actions[done_action]
-
-            if tip_name in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event_id) \
-                    and event.timestamp - action_timestamp < FORGET_TIME_DAYS * 24 * 60 * 60 * 1000:
-                self.preprocessed_logs.append(
-                     PreprocessedEvent(
-                         PreprocessedEvent.Type.ACTION, event.timestamp, event.device_id, tip_name, action_id=event_id))
-                is_tip_done_before = True
-                break
-
-        if not is_tip_done_before:
-            self.shown_tips.append((tip_name, event.timestamp, algo_name))
-            self.preprocessed_logs.append(
+        self.preprocessed_logs.append(
                 PreprocessedEvent(
-                    PreprocessedEvent.Type.TIP, event.timestamp, event.device_id, tip_name, was_done_before=False))
-        else:
-            self.preprocessed_logs.append(
-                 PreprocessedEvent(
-                     PreprocessedEvent.Type.TIP, event.timestamp, event.device_id, tip_name, was_done_before=True))
+                    PreprocessedEvent.Type.TIP, event.timestamp, event.device_id,
+                    filename=tip_name, tip_algo_name=algo_name))
 
     def process_action(self, event):
-        if (event.event_id, event.ide) not in self.done_actions.keys():
-            self.done_actions[(event.event_id, event.ide)] = (event.timestamp, event.count)
-        else:
-            _, cnt = self.done_actions[(event.event_id, event.ide)]
-            self.done_actions[(event.event_id, event.ide)] = \
-                (event.timestamp, cnt + event.count)
+        ide = event.ide
+        tips_all = self.ide_to_tips[ide]
+        tips_action = event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event.event_id)
 
-        for (tip, tip_timestamp, algo) in self.shown_tips:
-            if tip in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event.event_id):
+        for tip in tips_action:
+            if tip in tips_all:
                 self.preprocessed_logs.append(
                      PreprocessedEvent(
-                         PreprocessedEvent.Type.ACTION, event.timestamp, event.device_id, tip, action_id=event.event_id))
+                         PreprocessedEvent.Type.ACTION, event.timestamp, event.device_id,
+                         filename=tip, action_id=event.event_id))
+
+    def process_tips_group(self, event):
+        self.preprocessed_logs.append(
+            PreprocessedEvent(
+                PreprocessedEvent.Type.TIP_GROUP, event.timestamp, event.device_id,
+                tip_group_event_id=event.event_id))
 
     def process(self, events):
         tips_cnt = 0
@@ -78,6 +66,9 @@ class PreprocessedLogBuilder:
             else:
                 if event.group_id == ACTION_INVOKED_GROUP:
                     self.process_action(event)
+                else:
+                    if event.group_id == 'ui.tips':
+                        self.process_tips_group(event)
 
         return self.preprocessed_logs
 
@@ -85,6 +76,7 @@ class PreprocessedLogBuilder:
         self.shown_tips = []
         self.done_actions = {}
         self.preprocessed_logs = []
+        self.ide_to_tips = ide_to_tips()
 
 
 if __name__ == "__main__":
@@ -104,13 +96,18 @@ if __name__ == "__main__":
             log_string = ""
             if log.type == PreprocessedEvent.Type.TIP:
                 log_string += "TIP,"
-            else:
+            if log.type == PreprocessedEvent.Type.ACTION:
                 log_string += "ACTION,"
+            if log.type == PreprocessedEvent.Type.TIP_GROUP:
+                log_string += "TIP_GROUP,"
             log_string += str(log.timestamp) + ","
             log_string += log.device_id + ","
-            log_string += log.filename + ","
             if log.type == PreprocessedEvent.Type.TIP:
-                log_string += str(log.was_done_before) + "\n"
-            else:
+                log_string += log.filename + ","
+                log_string += log.tip_algo_name + "\n"
+            if log.type == PreprocessedEvent.Type.ACTION:
+                log_string += log.filename + ","
                 log_string += log.action_id + "\n"
+            if log.type == PreprocessedEvent.Type.TIP_GROUP:
+                log_string += log.tip_group_event_id + "\n"
             fout.write(log_string)
