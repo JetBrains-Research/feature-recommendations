@@ -1,116 +1,115 @@
-from reader import read_events_raw, event_to_tips
-from constants import TIPS_GROUP, ACTION_INVOKED_GROUP, PREDICTED_TIME_MILLIS, FORGET_TIME_DAYS
+from constants import PREDICTED_TIME_MILLIS, FORGET_TIME_DAYS
 import os
-from tqdm import tqdm
-from enum import Enum
+
+from logs_preprocess import PreprocessedEvent
 
 PATH = os.path.split(__file__)[0]
-PER_DEVICE_LOG_DIR = PATH + "/per_device_per_month_logs/"
-PER_DEVICE_LOG_FILES = ""
 LOG_FILE_OUT = PATH + "/preprocessed_logs.csv"
-if os.path.isdir(PER_DEVICE_LOG_DIR):
-    PER_DEVICE_LOG_FILES = os.listdir(PER_DEVICE_LOG_DIR)
 
 
-class PreprocessedEvent:
-    class Type(Enum):
-        TIP = 0
-        ACTION = 1
-
-    def __init__(self, type, timestamp, device_id, filename, was_done_before=None, action_id=None):
-        self.type = type
-        self.timestamp = timestamp
-        self.device_id = device_id
-        self.filename = filename
-        self.was_done_before = was_done_before
-        self.action_id = action_id
-
-
-class PreprocessedLogBuilder:
+class Evaluation:
     def process_tip(self, event):
-        tip_name = event.event_id.split(";")[0]
-        algo_name = event.event_id.split(";")[1]
+        tip_name = event.filename
+        algo_name = event.tip_algo_name
+
+        if algo_name not in self.all_tips_cnt.keys():
+            self.all_tips_cnt[algo_name] = 0
+            self.good_tips_cnt[algo_name] = 0
+            self.devices_good[algo_name] = {}
+            self.devices_all[algo_name] = {}
+        self.all_tips_cnt[algo_name] += 1
+        self.devices_all[algo_name][event.device_id] = True
 
         is_tip_done_before = False
-        for done_action in self.done_actions.keys():
-            event_id, _ = done_action
-            action_timestamp, _ = self.done_actions[done_action]
+        if event.device_id in self.device_to_done_actions.keys():
+            for filename in self.device_to_done_actions[event.device_id].keys():
+                action_timestamp = self.device_to_done_actions[event.device_id][filename]
 
-            if tip_name in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event_id) \
-                    and event.timestamp - action_timestamp < FORGET_TIME_DAYS * 24 * 60 * 60 * 1000:
-                self.preprocessed_logs.append(
-                     PreprocessedEvent(
-                         PreprocessedEvent.Type.ACTION, event.timestamp, event.device_id, tip_name, action_id=event_id))
-                is_tip_done_before = True
-                break
+                if tip_name == filename and\
+                        event.timestamp - action_timestamp < FORGET_TIME_DAYS * 24 * 60 * 60 * 1000:
+                    is_tip_done_before = True
+                    break
 
         if not is_tip_done_before:
-            self.shown_tips.append((tip_name, event.timestamp, algo_name))
-            self.preprocessed_logs.append(
-                PreprocessedEvent(
-                    PreprocessedEvent.Type.TIP, event.timestamp, event.device_id, tip_name, was_done_before=False))
-        else:
-            self.preprocessed_logs.append(
-                 PreprocessedEvent(
-                     PreprocessedEvent.Type.TIP, event.timestamp, event.device_id, tip_name, was_done_before=True))
+            if event.device_id not in self.device_to_tips.keys():
+                self.device_to_tips[event.device_id] = []
+            self.device_to_tips[event.device_id].append((tip_name, event.timestamp, algo_name))
 
     def process_action(self, event):
-        if (event.event_id, event.ide) not in self.done_actions.keys():
-            self.done_actions[(event.event_id, event.ide)] = (event.timestamp, event.count)
-        else:
-            _, cnt = self.done_actions[(event.event_id, event.ide)]
-            self.done_actions[(event.event_id, event.ide)] = \
-                (event.timestamp, cnt + event.count)
+        if event.device_id not in self.device_to_done_actions.keys():
+            self.device_to_done_actions[event.device_id] = {}
 
-        for (tip, tip_timestamp, algo) in self.shown_tips:
-            if tip in event_to_tips(group_id=ACTION_INVOKED_GROUP, event_id=event.event_id):
-                self.preprocessed_logs.append(
-                     PreprocessedEvent(
-                         PreprocessedEvent.Type.ACTION, event.timestamp, event.device_id, tip, action_id=event.event_id))
+        self.device_to_done_actions[event.device_id][event.filename] = event.timestamp
 
-    def process(self, events):
+        if event.device_id in self.device_to_tips.keys():
+            for (tip, tip_timestamp, algo) in self.device_to_tips[event.device_id]:
+                if tip == event.filename and event.timestamp - tip_timestamp < PREDICTED_TIME_MILLIS and\
+                        (event.device_id, tip, tip_timestamp) not in self.done_tips.keys():
+                    self.good_tips_cnt[algo] += 1
+                    self.done_tips[(event.device_id, tip, tip_timestamp)] = True
+                    self.devices_good[algo][event.device_id] = True
+
+    def evaluate(self, events):
         tips_cnt = 0
         for event in events:
-            if event.group_id == TIPS_GROUP:
+            if event.type == PreprocessedEvent.Type.TIP:
                 self.process_tip(event)
                 tips_cnt += 1
 
-            else:
-                if event.group_id == ACTION_INVOKED_GROUP:
-                    self.process_action(event)
+            if event.type == PreprocessedEvent.Type.ACTION:
+                self.process_action(event)
 
-        return self.preprocessed_logs
+            if event.type == PreprocessedEvent.Type.TIP_GROUP:
+                pass
+
+        accuracy = {}
+        device_accuracy = {}
+        for algo in self.all_tips_cnt.keys():
+            accuracy[algo] = self.good_tips_cnt[algo] * 1. / self.all_tips_cnt[algo]
+            device_accuracy[algo] = len(self.devices_good[algo].keys()) * 1. / len(self.devices_all[algo].keys())
+
+        return accuracy, device_accuracy, self.good_tips_cnt, self.all_tips_cnt
 
     def __init__(self):
-        self.shown_tips = []
-        self.done_actions = {}
-        self.preprocessed_logs = []
+        self.device_to_done_actions = {}
+        self.device_to_tips = {}
+        self.done_tips = {}
+        self.good_tips_cnt = {}
+        self.all_tips_cnt = {}
+        self.devices_good = {}
+        self.devices_all = {}
 
 
 if __name__ == "__main__":
     preprocessed_logs = []
-    for file_name in tqdm(PER_DEVICE_LOG_FILES):
-        if not (file_name[-4:] == '.csv'):
-            continue
-        events, event_types, devices = read_events_raw(PER_DEVICE_LOG_DIR + file_name)
-        events.sort(key=lambda x: x.timestamp)
-        logs = PreprocessedLogBuilder().process(events)
-        for log in logs:
-            preprocessed_logs.append(log)
 
-    preprocessed_logs.sort(key=lambda x: x.timestamp)
-    with open(LOG_FILE_OUT, 'w') as fout:
-        for log in preprocessed_logs:
-            log_string = ""
-            if log.type == PreprocessedEvent.Type.TIP:
-                log_string += "TIP,"
-            else:
-                log_string += "ACTION,"
-            log_string += str(log.timestamp) + ","
-            log_string += log.device_id + ","
-            log_string += log.filename + ","
-            if log.type == PreprocessedEvent.Type.TIP:
-                log_string += str(log.was_done_before) + "\n"
-            else:
-                log_string += log.action_id + "\n"
-            fout.write(log_string)
+    with open(LOG_FILE_OUT, 'r') as fin:
+        for line in fin:
+            event_line = line.replace("\n", '').split(',')
+            timestamp = int(event_line[1])
+            device_id = event_line[2]
+            event = None
+
+            if event_line[0] == "TIP":
+                type_ = PreprocessedEvent.Type.TIP
+                filename = event_line[3]
+                tip_algo_name = event_line[4]
+                event = PreprocessedEvent(type_, timestamp, device_id, filename=filename, tip_algo_name=tip_algo_name)
+            if event_line[0] == "ACTION":
+                type_ = PreprocessedEvent.Type.ACTION
+                filename = event_line[3]
+                action_id = event_line[4]
+                event = PreprocessedEvent(type_, timestamp, device_id, filename=filename, action_id=action_id)
+            if event_line[0] == "TIP_GROUP":
+                type_ = PreprocessedEvent.Type.TIP_GROUP
+                event_id = event_line[3]
+                event = PreprocessedEvent(type_, timestamp, device_id, tip_group_event_id=event_id)
+
+            preprocessed_logs.append(event)
+
+    accuracy, users_accuracy, good_tips_cnt, all_tips_cnt = Evaluation().evaluate(preprocessed_logs)
+    for algo in accuracy.keys():
+        print(f"{algo}: percent of followed tips: {accuracy[algo] * 100}")
+        #print(f"{algo}: good tips count: {good_tips_cnt[algo]}")
+        #print(f"{algo}: all tips count: {all_tips_cnt[algo]}")
+        #print(f"{algo}: percent of users who followed the tips is: {users_accuracy[algo] * 100}")

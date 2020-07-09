@@ -91,9 +91,32 @@ def _check_group_event_id(event):
                                 'ESLintLanguageService')
 
 
+product_name_to_ide_ = {
+    "OC": "appcode",
+    "CL": "clion",
+    "DB": "datagrip",
+    "GO": "go",
+    "IU": "intellij-idea",
+    "IC": "intellij-idea-community",
+    "PS": "phpstorm",
+    "PY": "pycharm",
+    "PC": "pycharm-community",
+    "PYA": "pycharm",
+    "PCA": "pycharm-community",
+    "RM": "rubymine",
+    "WS": "webstorm"
+}
+
+
+def product_name_to_ide(pn):
+    if pn in product_name_to_ide_.keys():
+        return product_name_to_ide_[pn]
+    return pn
+
+
 def _extract_from_csv_row(event_data, is_eval):
     if is_eval:
-        ide = event_data[13]
+        ide = product_name_to_ide(event_data[13])
         count = event_data[11].split('.')[0]
         group_id = event_data[4]
         event_id = event_data[9]
@@ -105,7 +128,7 @@ def _extract_from_csv_row(event_data, is_eval):
     else:
         if len(event_data) < 20:
             return None
-        ide = event_data[19]
+        ide = product_name_to_ide(event_data[19])
         count = event_data[12].split('.')[0]
         group_id = event_data[5]
         event_id = event_data[10]
@@ -147,6 +170,7 @@ def read_events_raw(file_name, is_eval=False):
     events = []
     event_types = {}
     devices = {}
+    ide_to_tips_ = ide_to_tips()
     with open(file_name, 'r') as fin:
         is_first = True
         for event_data in tqdm(csv.reader(fin, delimiter=',')):
@@ -155,7 +179,9 @@ def read_events_raw(file_name, is_eval=False):
                 continue
 
             event = _extract_from_csv_row(event_data, is_eval)
-            if (not event) or event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP:
+            if (not event) or event.group_id != ACTION_INVOKED_GROUP and event.group_id != TIPS_GROUP and\
+                    event.group_id != 'ui.tips'\
+                    or event.ide not in ide_to_tips_.keys():
                 continue
 
             if event.count and _check_group_event_id(event):
@@ -229,15 +255,15 @@ def read_events_from_file():
     return train_events, events_types, train_device_ids
 
 
-def ide_to_tips(file_name, is_eval=False):
+def ide_to_tips():
     ide_to_tips = {}
-    events, events_types, train_device_ids = read_events_raw(file_name, is_eval)
-    for event in events:
-        if event.group_id == TIPS_GROUP:
-            if event.ide not in ide_to_tips.keys():
-                ide_to_tips[event.ide] = {}
-            tip = event.event_id.split(";")[0]
-            ide_to_tips[event.ide][tip] = True
+    with open(IDE_TO_TIPS_FILE, 'r') as fin:
+        for line in fin:
+            tip = line.split(",")[0]
+            ide = line.split(",")[1].replace("\n", '')
+            if ide not in ide_to_tips.keys():
+                ide_to_tips[ide] = {}
+            ide_to_tips[ide][tip] = True
     return ide_to_tips
 
 
