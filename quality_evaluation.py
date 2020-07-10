@@ -1,6 +1,6 @@
 from constants import PREDICTED_TIME_MILLIS, FORGET_TIME_DAYS
 import os
-
+from tqdm import tqdm
 from logs_preprocess import PreprocessedEvent
 
 PATH = os.path.split(__file__)[0]
@@ -51,7 +51,7 @@ class Evaluation:
 
     def evaluate(self, events):
         tips_cnt = 0
-        for event in events:
+        for event in tqdm(events):
             if event.type == PreprocessedEvent.Type.TIP:
                 self.process_tip(event)
                 tips_cnt += 1

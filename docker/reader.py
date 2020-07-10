@@ -173,7 +173,7 @@ def read_events_raw(file_name, is_eval=False):
     ide_to_tips_ = ide_to_tips()
     with open(file_name, 'r') as fin:
         is_first = True
-        for event_data in tqdm(csv.reader(fin, delimiter=',')):
+        for event_data in csv.reader(fin, delimiter=','):
             if is_first:
                 is_first = False
                 continue

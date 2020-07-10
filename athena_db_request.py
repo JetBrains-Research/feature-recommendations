@@ -1,13 +1,11 @@
 from pyathena import connect
 import os
-import shutil
-from tqdm import tqdm
 import csv
 
 PATH = os.path.split(__file__)[0]
 PER_DEVICE_LOG_DIR = PATH + "/per_device_per_month_logs/"
 DEVICE_IDS_FILE = PATH + "/device_ids_06.csv"
-DEVICE_IDS_DONE_FILE = PATH + "/device_ids_06_done.csv"
+DEVICE_IDS_DONE_FILE = PATH + "/device_ids_06_1_done.csv"
 
 
 def device_query(month):
@@ -20,16 +18,18 @@ def device_query(month):
     """
 
 
-def log_query(device_id, month):
+def log_query(device_id, month, days_from, days_to):
     return """
     select * from fus_lion_v3_prod.fus_lion_v3_parquet_prod
     where
     date_year = '2020' and date_month = '""" + month + """'
+    and date_day <= '""" + days_to + """' and date_day >= '""" + days_from + """'
     and device_id = '""" + device_id + """'
     and recorder_code = 'FUS' and internal = false
     and ((group_id = 'ui.tips' and event_id = 'tip.shown'
          and (not json_extract_scalar(event_data, '$.algorithm') = 'validation.unmatched_rule'))
-    or (group_id = 'actions' and event_id = 'action.invoked' ))
+    or (group_id = 'actions' and event_id = 'action.invoked' )
+     or (group_id = 'ui.tips' and event_id != 'tip.shown' ))
     """
 
 
@@ -57,10 +57,13 @@ def generate_logs_per_user_per_month():
                 continue
             print(device_id)
             month = '06'
+            days_from = '01'
+            days_to = '07'
+            week = '1'
             cursor = get_cursor()
-            query = log_query(device_id, month)
+            query = log_query(device_id, month, days_from, days_to)
             cursor.execute(query)
-            with open(PER_DEVICE_LOG_DIR + device_id + "_" + month + ".csv", 'w') as fout:
+            with open(PER_DEVICE_LOG_DIR + device_id + "_" + month + "_" + week + ".csv", 'w') as fout:
                 csv_out = csv.writer(fout)
                 for line in cursor:
                     csv_out.writerow(line)

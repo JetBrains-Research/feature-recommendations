@@ -14,6 +14,7 @@ from recommenders.recommender_top_event import RecommenderTopEvent
 from recommenders.recommender_top_event_with_probability import RecommenderTopEventWithProbability
 from recommenders.recommender_widely_used import RecommenderWidelyUsed
 from recommenders.recommender_weights_lin_reg import RecommenderWeightsLinear
+from recommenders.recommender_one_tip import RecommenderOneTip
 
 logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
@@ -26,20 +27,21 @@ METHOD_TO_CLASS = {
     Method.CODIS: RecommenderCoDis,
     Method.RANDOM: RecommenderRandom,
     Method.WEIGHTS_LIN_REG: RecommenderRandom,
-    Method.PROB_2: RecommenderTopEventWithProbability,
+    Method.ONE_TIP_SUMMER2020: RecommenderOneTip,
     Method.MATRIX_BPR: BayesianPersonalizedRanking,
     Method.WIDE_2: RecommenderWidelyUsed,
     Method.CODIS_2: RecommenderCoDis,
     Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
-    Method.WIDE_3: RecommenderWidelyUsed,
-    Method.CODIS_3: RecommenderCoDis,
+    Method.ONE_TIP_SUMMER2020_2: RecommenderOneTip,
+    Method.RANDOM_SUMMER2020_2: RecommenderRandom,
     Method.WEIGHTS_LIN_REG_2: RecommenderRandom,
-    Method.WEIGHTS_LIN_REG_3: RecommenderRandom
+    Method.RANDOM_SUMMER2020: RecommenderRandom
 }
 
 is_trained = True
 for i in range(METHODS_CNT):
-    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.WEIGHTS_LIN_REG_3 \
+    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.RANDOM_SUMMER2020\
+         and Method(i) != Method.ONE_TIP_SUMMER2020\
             and Method(i) != Method.WEIGHTS_LIN_REG\
             and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
         is_trained = False
@@ -56,10 +58,10 @@ if not is_trained:
     logging.info("Train data read.")
 
 for i in range(METHODS_CNT):
-    if Method(i) == Method.CODIS_2 or Method(i) == Method.CODIS_3:
+    if Method(i) == Method.CODIS_2:
         algorithms[Method(i)] = algorithms[Method.CODIS]
         continue
-    if Method(i) == Method.WEIGHTS_LIN_REG_2 or Method(i) == Method.WEIGHTS_LIN_REG_3:
+    if Method(i) == Method.WEIGHTS_LIN_REG_2:
         algorithms[Method(i)] = algorithms[Method.WEIGHTS_LIN_REG]
         continue
     if os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):

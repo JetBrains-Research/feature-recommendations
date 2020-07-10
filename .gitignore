@@ -138,3 +138,4 @@ dmypy.json
 **/resources/test_*
 **/log_sample_for_evaluation.csv
 **/resources/new_*
+**/device_id*.csv

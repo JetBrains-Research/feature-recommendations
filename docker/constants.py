@@ -14,15 +14,15 @@ class Method(Enum):
     CODIS = 4
     RANDOM = 5
     WEIGHTS_LIN_REG = 6
-    PROB_2 = 7
+    ONE_TIP_SUMMER2020 = 7
     MATRIX_BPR = 8
     WIDE_2 = 9
     CODIS_2 = 10
     WEIGHTS_LIN_REG_2 = 11
-    WEIGHTS_LIN_REG_3 = 12
+    RANDOM_SUMMER2020 = 12
     MATRIX_BPR_2 = 13
-    WIDE_3 = 14
-    CODIS_3 = 15
+    ONE_TIP_SUMMER2020_2 = 14
+    RANDOM_SUMMER2020_2 = 15
 
 
 METHODS_CNT = 16
@@ -46,6 +46,8 @@ CODIS_MODEL_FILE = PATH + "/models/codis.pickle"
 WEIGHTS_MODEL_FILE = PATH + "/models/weights_complicated.pickle"
 WEIGHTS_LIN_REG_FILE = PATH + "/models/weights_lin_reg.pickle"
 
+ONE_TIP_MODEL_FILE = PATH + "/models/one_tip.pickle"
+
 
 METHOD_TO_FILE_NAME = {
     Method.TOP: TOP_MODEL_FILE,
@@ -55,15 +57,15 @@ METHOD_TO_FILE_NAME = {
     Method.CODIS: CODIS_MODEL_FILE,
     Method.RANDOM: RANDOM_MODEL_FILE,
     Method.WEIGHTS_LIN_REG: WEIGHTS_LIN_REG_FILE,
-    Method.PROB_2: PROB_MODEL_FILE,
+    Method.ONE_TIP_SUMMER2020: ONE_TIP_MODEL_FILE,
     Method.MATRIX_BPR: MATRIX_BPR_MODEL_FILE,
     Method.WIDE_2: WIDE_MODEL_FILE,
     Method.CODIS_2: CODIS_MODEL_FILE,
     Method.MATRIX_BPR_2: MATRIX_BPR_MODEL_FILE,
-    Method.WIDE_3: WIDE_MODEL_FILE,
-    Method.CODIS_3: CODIS_MODEL_FILE,
+    Method.ONE_TIP_SUMMER2020_2: ONE_TIP_MODEL_FILE,
+    Method.RANDOM_SUMMER2020_2: RANDOM_MODEL_FILE,
     Method.WEIGHTS_LIN_REG_2: WEIGHTS_LIN_REG_FILE,
-    Method.WEIGHTS_LIN_REG_3: WEIGHTS_LIN_REG_FILE
+    Method.RANDOM_SUMMER2020: RANDOM_MODEL_FILE
 }
 
 LABELS_DATA_SOURCE = PATH + "/resources/labeled_data_source"
@@ -82,3 +84,4 @@ TEST_LABELS_NEGATIVE_DIR = PATH + "/resources/test_labels_negative"
 TRAIN_LABELS_NEGATIVE_DIR = PATH + "/resources/train_labels_negative"
 
 LEARN_TIME_FILE_NAME = PATH + "/resources/learning_time.csv"
+IDE_TO_TIPS_FILE = PATH + "/resources/tip_to_ide.csv"
