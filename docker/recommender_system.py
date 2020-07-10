@@ -41,7 +41,8 @@ METHOD_TO_CLASS = {
 is_trained = True
 for i in range(METHODS_CNT):
     if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.RANDOM_SUMMER2020\
-         and Method(i) != Method.ONE_TIP_SUMMER2020\
+         and Method(i) != Method.ONE_TIP_SUMMER2020 and Method(i) != Method.ONE_TIP_SUMMER2020_2 and\
+            Method(i) != Method.RANDOM_SUMMER2020_2\
             and Method(i) != Method.WEIGHTS_LIN_REG\
             and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
         is_trained = False
