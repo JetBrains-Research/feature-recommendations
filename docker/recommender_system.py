@@ -20,33 +20,33 @@ logging.basicConfig(filename="recommendations.log", level=logging.INFO)
 
 
 METHOD_TO_CLASS = {
-    Method.TOP: RecommenderTopEvent,
-    Method.PROB: RecommenderTopEventWithProbability,
-    Method.MATRIX_ALS: AlternatingLeastSquares,
-    Method.WIDE: RecommenderWidelyUsed,
-    Method.CODIS: RecommenderCoDis,
-    Method.RANDOM: RecommenderRandom,
-    Method.WEIGHTS_LIN_REG: RecommenderRandom,
+    #Method.TOP: RecommenderTopEvent,
+    #Method.PROB: RecommenderTopEventWithProbability,
+    #Method.MATRIX_ALS: AlternatingLeastSquares,
+    #Method.WIDE: RecommenderWidelyUsed,
+    #Method.CODIS: RecommenderCoDis,
+    #Method.RANDOM: RecommenderRandom,
+    #Method.WEIGHTS_LIN_REG: RecommenderRandom,
     Method.ONE_TIP_SUMMER2020: RecommenderOneTip,
-    Method.MATRIX_BPR: BayesianPersonalizedRanking,
-    Method.WIDE_2: RecommenderWidelyUsed,
-    Method.CODIS_2: RecommenderCoDis,
-    Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
-    Method.ONE_TIP_SUMMER2020_2: RecommenderOneTip,
-    Method.RANDOM_SUMMER2020_2: RecommenderRandom,
-    Method.WEIGHTS_LIN_REG_2: RecommenderRandom,
+    #Method.MATRIX_BPR: BayesianPersonalizedRanking,
+    #Method.WIDE_2: RecommenderWidelyUsed,
+    #Method.CODIS_2: RecommenderCoDis,
+    #Method.MATRIX_BPR_2: BayesianPersonalizedRanking,
+    #Method.ONE_TIP_SUMMER2020_2: RecommenderOneTip,
+    #Method.RANDOM_SUMMER2020_2: RecommenderRandom
+    #Method.WEIGHTS_LIN_REG_2: RecommenderRandom,
     Method.RANDOM_SUMMER2020: RecommenderRandom
 }
 
 is_trained = True
-for i in range(METHODS_CNT):
-    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.RANDOM_SUMMER2020\
-         and Method(i) != Method.ONE_TIP_SUMMER2020 and Method(i) != Method.ONE_TIP_SUMMER2020_2 and\
-            Method(i) != Method.RANDOM_SUMMER2020_2\
-            and Method(i) != Method.WEIGHTS_LIN_REG\
-            and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
-        is_trained = False
-        break
+#for i in range(METHODS_CNT):
+#    if Method(i) != Method.RANDOM and Method(i) != Method.WEIGHTS_LIN_REG_2 and Method(i) != Method.RANDOM_SUMMER2020\
+#         and Method(i) != Method.ONE_TIP_SUMMER2020 and Method(i) != Method.ONE_TIP_SUMMER2020_2 and\
+#            Method(i) != Method.RANDOM_SUMMER2020_2\
+#            and Method(i) != Method.WEIGHTS_LIN_REG\
+#            and not os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
+#        is_trained = False
+#        break
 
 algorithms = {}
 
@@ -59,12 +59,12 @@ if not is_trained:
     logging.info("Train data read.")
 
 for i in range(METHODS_CNT):
-    if Method(i) == Method.CODIS_2:
-        algorithms[Method(i)] = algorithms[Method.CODIS]
-        continue
-    if Method(i) == Method.WEIGHTS_LIN_REG_2:
-        algorithms[Method(i)] = algorithms[Method.WEIGHTS_LIN_REG]
-        continue
+    #if Method(i) == Method.CODIS_2:
+    #    algorithms[Method(i)] = algorithms[Method.CODIS]
+    #    continue
+    #if Method(i) == Method.WEIGHTS_LIN_REG_2:
+    #    algorithms[Method(i)] = algorithms[Method.WEIGHTS_LIN_REG]
+    #    continue
     if os.path.isfile(METHOD_TO_FILE_NAME[Method(i)]):
         with open(METHOD_TO_FILE_NAME[Method(i)], 'rb') as f:
             algorithms[Method(i)] = pickle.load(f)

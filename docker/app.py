@@ -42,14 +42,14 @@ def do_recommendation():
 
     data = {"showingOrder": recommendation,
             "usedAlgorithm": name,
-            "version": "0.1"}
+            "version": "6.0"}
 
     return data
 
 
 @app.route('/hello', methods=['GET'])
 def hello():
-    return "Hello World!!!"
+    return "Hello, this is version 6.0"
 
 
 if __name__ == '__main__':
