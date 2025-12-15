@@ -1,3 +1,7 @@
+# Status: Archived 
+
+No longer maintained
+
 # Feature Recommendation Engine for IntelliJ IDEA	
 ## About the project
 Integrated developer environments provide their users with many different features, but the developers usually know these features not well enough. To make developers more productive, they should be taught to use these features. IntelliJ IDEA provides a teaching mechanism called Tips of the Day. But this mechanism shows recommendations in random order and does not consider the individual needs of developers. In this work, we researched different recommendation algorithms, which allowed us to choose the best algorithms for improving Tips of the Day in IntelliJ IDEA. The result of this work is a recommender system implemented as an external web service, containing various algorithms, receiving requests from IntelliJ IDEA, and sending a sorted list of recommendations as a response. The service was evaluated on the test data collected from real  users, that allowed to compare the implemented algorithms.
